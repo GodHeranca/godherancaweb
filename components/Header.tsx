@@ -95,9 +95,11 @@ const Header: React.FC = () => {
         <nav className='bg-white p-4'>
             {showPrompt && <LocationPrompt onConfirm={handleConfirm} onManual={handleManual} />}
             <div className='flex items-center justify-between max-w-6xl mx-auto'>
-                <div className='flex items-center flex-shrink-0'>
-                    <Image src='/G.png' alt='Profile Picture' width={40} height={40} />
-                </div>
+                <a href='/'>
+                    <div className='flex items-center flex-shrink-0'>
+                        <Image src='/G.png' alt='Profile Picture' width={40} height={40} />
+                    </div>
+                </a>
                 <div className='flex items-center flex-1 mx-8'>
                     <div className='flex items-center space-x-2 flex-shrink-0'>
                         {address &&
