@@ -95,11 +95,11 @@ const Header: React.FC = () => {
         <nav className='bg-white p-4'>
             {showPrompt && <LocationPrompt onConfirm={handleConfirm} onManual={handleManual} />}
             <div className='flex items-center justify-between max-w-6xl mx-auto'>
-                <div className='flex '>
+                <div className='flex items-center flex-shrink-0'>
                     <Image src='/G.png' alt='Profile Picture' width={40} height={40} />
                 </div>
-                <div className='flex-1 mx-8'>
-                    <div className='flex items-center space-x-2'>
+                <div className='flex items-center flex-1 mx-8'>
+                    <div className='flex items-center space-x-2 flex-shrink-0'>
                         {address &&
                             <span className='truncate w-40'>{address}</span>
                         }
@@ -107,20 +107,18 @@ const Header: React.FC = () => {
                             <Image src='/dropdown.png' alt='Dropdown' width={25} height={25} />
                         </button>
                     </div>
-                </div>
-                <div className='flex-1 mx-2'>
-                    <div className='flex items-center border border-gray-300 rounded-md px-2 w-250 h-12'>
+                    <div className='flex items-center border border-gray-300 rounded-md px-2 w-full ml-4'>
                         <button className='p-1'>
                             <Image src='/search.png' alt='Search' width={20} height={20} />
                         </button>
                         <input
                             type='text'
                             placeholder='Search...'
-                            className='border-none outline-none px-2 py-2 flex-grow'
+                            className='border-none outline-none px-4 py-2 flex-grow text-lg'
                         />
                     </div>
                 </div>
-                <div className='flex items-center'>
+                <div className='flex items-center flex-shrink-0'>
                     <a href="#" className='text-black px-4 py-2'>
                         Sobre Nós
                     </a>
