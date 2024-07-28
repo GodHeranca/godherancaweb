@@ -7,14 +7,14 @@ function Footer() {
             <p className="mt-2">&copy; 2024 GodHeranca. All rights reserved.</p>
             <div className="flex gap-4 mt-2">
                 <a
-                    href="https://www.facebook.com/GodHeranca"
+                    href="https://www.facebook.com/profile.php?id=61558722816297"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
                     <Image src='/facebook.svg' alt='facebook' width={20} height={20} />
                 </a>
                 <a
-                    href="https://www.instagram.com/GodHeranca"
+                    href="https://www.instagram.com/godheranca/"
                     target="_blank"
                     rel="noopener noreferrer"
                 >
@@ -28,7 +28,7 @@ function Footer() {
                     <Image src='/twitter.svg' alt='twitter' width={20} height={20} />
                 </a>
                 <a
-                    href="https://www.linkedin.com/in/GodHeranca"
+                    href="https://www.linkedin.com/company/godheran%C3%A7a/"
                     target="_blank"
                     rel="noopener noreferrer"
                 >

@@ -1,6 +1,7 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useSearch } from '@/context/SearchContext';
 
 interface LocationPromptProps {
     onConfirm: () => void;
@@ -29,9 +30,19 @@ const LocationPrompt: React.FC<LocationPromptProps> = ({ onConfirm, onManual }) 
     );
 };
 
+interface HeaderProps {
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+}
+
 const Header: React.FC = () => {
+    const { searchQuery, setSearchQuery } = useSearch();
     const [showPrompt, setShowPrompt] = useState(true);
     const [address, setAddress] = useState<string | null>(null);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    };
 
     useEffect(() => {
         if (!showPrompt) {
@@ -95,33 +106,33 @@ const Header: React.FC = () => {
         <nav className='bg-white p-4'>
             {showPrompt && <LocationPrompt onConfirm={handleConfirm} onManual={handleManual} />}
             <div className='flex items-center justify-between max-w-6xl mx-auto'>
-                <a href='/' >
+                <a href='/'>
                     <div className='flex items-start flex-shrink-0'>
                         <Image src='/logo.svg' alt='Logo' width={80} height={80} />
                     </div>
                 </a>
                 <div className='flex items-center flex-1 mx-8'>
                     <div className='flex items-center space-x-2 flex-shrink-0'>
-                        {address &&
-                            <span className='truncate w-40'>{address}</span>
-                        }
+                        {address && <span className='truncate w-40'>{address}</span>}
                         <button className='bg-white text-white px-4 py-2 rounded'>
                             <Image src='/dropdown.png' alt='Dropdown' width={25} height={25} />
                         </button>
                     </div>
-                    <div className='flex items-center border border-gray-300 rounded-md px-2 w-full ml-4'>
+                    <div className='flex items-center border border-gray-300 rounded-xl px-2 w-full ml-4'>
                         <button className='p-1'>
                             <Image src='/search.png' alt='Search' width={20} height={20} />
                         </button>
                         <input
                             type='text'
-                            placeholder='Search...'
+                            placeholder='Pesquisar supermercado atacadista...'
                             className='border-none outline-none px-4 py-2 flex-grow text-lg'
+                            value={searchQuery}
+                            onChange={handleSearchChange}
                         />
                     </div>
                 </div>
                 <div className='flex items-center flex-shrink-0'>
-                    <a href="#" className='text-black px-4 py-2'>
+                    <a href='#' className='text-black px-4 py-2'>
                         Sobre Nós
                     </a>
                 </div>
