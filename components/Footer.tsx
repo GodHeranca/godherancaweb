@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 function Footer() {
     return (
-        <div className=" flex justify-evenly p-10 bg-white bottom-0 w-full">
+        <div className=" flex justify-evenly p-10 bg-white bottom-0 ">
             <p className="mt-2">&copy; 2024 GodHeranca. All rights reserved.</p>
             <div className="flex gap-4 mt-2">
                 <a
