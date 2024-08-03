@@ -15,8 +15,8 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
     const { searchQuery, setSearchQuery } = useSearch();
     const [showPrompt, setShowPrompt] = useState(true);
     const [address, setAddress] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true); // New loading state
-    const isGoogleMapsLoaded = useGoogleMapsLoader(api as string);
+    const [loading, setLoading] = useState(false);
+    const isGoogleMapsLoaded = useGoogleMapsLoader(api);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -82,8 +82,11 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                 setUserLocation({ lat: location.lat(), lon: location.lng() });
                 setAddress(results[0].formatted_address);
                 console.log(`Address set to: ${results[0].formatted_address}`);
-            } else {
+            } else if (status === google.maps.GeocoderStatus.ZERO_RESULTS) {
                 alert('No results found for the provided address.');
+                console.error('Geocode error: ZERO_RESULTS', results);
+            } else {
+                alert('Geocode was not successful for the following reason: ' + status);
                 console.error('Geocode error:', status, results);
             }
             setLoading(false); // Set loading to false after geocoding
@@ -150,7 +153,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                 </div>
                 <div className='flex items-center flex-shrink-0'>
                     <a href='#' className='text-black px-4 py-2'>
-                        Sobre Nós
+                        Sobre Nos
                     </a>
                 </div>
             </div>
@@ -161,9 +164,13 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                     onManual={handleManualLocation}
                 />
             )}
+            {loading && (
+                <div className="absolute top-0 left-0 right-0 bottom-0 bg-gray-50 bg-opacity-75 flex items-center justify-center">
+                    <p>Loading...</p>
+                </div>
+            )}
         </nav>
     );
 };
-
 
 export default Header;
