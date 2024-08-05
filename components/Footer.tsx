@@ -3,9 +3,9 @@ import Image from 'next/image';
 
 function Footer() {
     return (
-        <div className=" flex justify-evenly p-10 bg-white bottom-0 ">
-            <p className="mt-2">&copy; 2024 GodHeranca. All rights reserved.</p>
-            <div className="flex gap-4 mt-2">
+        <div className="flex flex-col md:flex-row justify-between items-center p-4 md:p-10 bg-white">
+            <p className="mt-2 text-center md:text-left">&copy; 2024 GodHeranca. All rights reserved.</p>
+            <div className="flex gap-4 mt-4 md:mt-2">
                 <a
                     href="https://www.facebook.com/profile.php?id=61558722816297"
                     target="_blank"
@@ -35,7 +35,6 @@ function Footer() {
                     <Image src='/linkedin.svg' alt='linkedin' width={20} height={20} />
                 </a>
             </div>
-
         </div>
     );
 }

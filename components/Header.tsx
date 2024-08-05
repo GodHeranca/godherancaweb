@@ -62,11 +62,8 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
         setLoading(false); // Set loading to false if error occurs
     };
 
-    const manualLocation = () => {
-        const manualAddress = prompt('Please enter your address manually:');
-        if (manualAddress) {
-            geocodeAddress(manualAddress);
-        }
+    const manualLocation = (manualAddress: string) => {
+        geocodeAddress(manualAddress);
     };
 
     const geocodeAddress = (address: string) => {
@@ -117,21 +114,21 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
         setLoading(true); // Start loading when location confirmation begins
     };
 
-    const handleManualLocation = () => {
+    const handleManualLocation = (address: string) => {
         setShowPrompt(false);
-        manualLocation();
+        manualLocation(address);
         setLoading(true); // Start loading when manual location is used
     };
 
     return (
         <nav className='bg-white p-4'>
-            <div className='flex items-center justify-between max-w-6xl mx-auto'>
+            <div className='flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto'>
                 <a href='/'>
                     <div className='flex items-start flex-shrink-0'>
                         <Image src='/logo.svg' alt='Logo' width={80} height={80} />
                     </div>
                 </a>
-                <div className='flex items-center flex-1 mx-8'>
+                <div className='flex flex-col md:flex-row items-center flex-1 mx-8 mt-4 md:mt-0'>
                     <div className='flex items-center space-x-2 flex-shrink-0'>
                         {address && <span className='truncate w-40'>{address}</span>}
                         <button onClick={() => setShowPrompt(true)} className='bg-white text-white px-4 py-2 rounded'>
@@ -151,7 +148,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                         />
                     </div>
                 </div>
-                <div className='flex items-center flex-shrink-0'>
+                <div className='flex items-center flex-shrink-0 mt-4 md:mt-0'>
                     <a href='#' className='text-black px-4 py-2'>
                         Sobre Nos
                     </a>
