@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearch } from "@/context/SearchContext";
-import { supermarkets, Supermarket } from "@/data/SupermarketData";
+import { supermarkets } from "@/data/SupermarketData";
+import { Supermarket } from "@/data/supermarketType"
 
 interface HomeProps {
     userLocation: { lat: number, lon: number } | null;

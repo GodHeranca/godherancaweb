@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import CategoryButton from '@/components/CategoryButton';
+import CartItem from '@/components/CartItem';
+import ItemCard from '@/components/ItemCard';
+import CheckoutModal from '@/components/CheckoutModal';
+import ItemModal from '@/components/ItemModal';
+import { Item } from '@/data/type'; // Import the Item type
 
 type Category = {
     id: number;
     name: string;
     image: string;
-};
-
-type Item = {
-    id: number;
-    categoryId: number;
-    name: string;
-    image: string;
-    price: number;
-    description: string;
 };
 
 interface SupermarketPageProps {
@@ -31,7 +27,15 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
     const [cart, setCart] = useState<CartItem[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const router = useRouter();
+    const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+    const [customerName, setCustomerName] = useState('');
+    const [streetAddress, setStreetAddress] = useState('');
+    const [note, setNote] = useState('');
+    const [paymentMethod, setPaymentMethod] = useState<'Pix' | 'credit-card' | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [buttonClicked, setButtonClicked] = useState(false);
 
     const addToCart = (item: Item) => {
         setCart((prevCart) => {
@@ -75,14 +79,23 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
         return filteredItems;
     };
 
-    const getTotal = () => {
-        return cart.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    const finalizePurchase = () => {
+        setButtonClicked(true);
+        setTimeout(() => setButtonClicked(false), 200); // Reset the button state after 200ms
+
+        setIsLoading(true);
+        setIsCheckoutModalOpen(true);
+        setTimeout(() => setIsLoading(false), 1000); // Simulate a delay for visual feedback
     };
 
-    const finalizePurchase = () => {
-        const cartString = JSON.stringify(cart);
-        // Using a fixed slug 'order' for simplicity
-        router.push(`/checkout/order?cart=${encodeURIComponent(cartString)}`);
+    const handleOpenItemModal = (item: Item) => {
+        setSelectedItem(item);
+        setIsItemModalOpen(true);
+    };
+
+    const handleCloseItemModal = () => {
+        setSelectedItem(null);
+        setIsItemModalOpen(false);
     };
 
     return (
@@ -93,95 +106,89 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
                 <p className='text-lg text-gray-600 mb-4'>{address}</p>
                 <h2 className='text-2xl font-bold mb-4'>Categorias</h2>
                 <div className='flex flex-wrap space-x-4 overflow-x-auto'>
-                    <button onClick={() => setSelectedCategory(null)} className='flex flex-col items-center px-4 py-2 bg-white text-black rounded mb-4'>
+                    <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`flex flex-col items-center px-4 py-2 ${selectedCategory === null ? 'bg-gray-200' : 'bg-white'} text-black rounded mb-4`}
+                    >
                         <Image src="/all.svg" alt="All" width={50} height={50} className='rounded py-2' />
                         Todos
                     </button>
                     {categories.map((category) => (
-                        <button
+                        <CategoryButton
                             key={category.id}
+                            category={category}
                             onClick={() => setSelectedCategory(category.id)}
-                            className='flex flex-col items-center px-4 py-2 bg-white text-black rounded mb-4'
-                        >
-                            <Image src={category.image} alt={category.name} width={50} height={50} className='rounded py-2' />
-                            {category.name}
-                        </button>
+                            isSelected={selectedCategory === category.id}
+                        />
                     ))}
                 </div>
 
                 <div className='mt-4 mb-4'>
                     <input
                         type='text'
-                        placeholder='Search for items...'
+                        placeholder='Pesquisar itens...'
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className='w-full p-2 border rounded'
                     />
                 </div>
 
-                <h2 className='text-2xl font-bold mt-8 mb-4'>Items</h2>
-                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
                     {filterItemsByCategoryAndSearch().map((item) => (
-                        <div key={item.id} className='bg-white p-4 rounded shadow'>
-                            <Image src={item.image} alt={item.name} width={150} height={150} className='rounded w-full h-auto' />
-                            <p className='mt-2 font-bold'>{item.name}</p>
-                            <p className='text-gray-600'>{item.description}</p>
-                            <p>R${item.price.toFixed(2)}</p>
-                            <button
-                                onClick={() => addToCart(item)}
-                                className='mt-2 px-4 py-2 bg-black text-white rounded'
-                            >
-                                COMPRAR
-                            </button>
-                        </div>
+                        <ItemCard key={item.id} item={item} onAddToCart={addToCart} onClick={() => handleOpenItemModal(item)} />
                     ))}
                 </div>
             </div>
-            <div className='w-full lg:w-1/4 bg-white p-4 mt-4 lg:mt-0'>
-                <h2 className='text-xl font-bold'>Cart</h2>
-                <ul>
-                    {cart.map((cartItem, index) => (
-                        <li key={index} className='mb-4'>
-                            <div className='flex justify-between items-center'>
-                                <span>{cartItem.name} - R${cartItem.price.toFixed(2)}</span>
-                                <div className='flex items-center'>
-                                    <button
-                                        onClick={() => updateCartItemQuantity(cartItem.id, cartItem.quantity - 1)}
-                                        className='px-2 py-1 bg-gray-300 rounded'
-                                    >
-                                        -
-                                    </button>
-                                    <input
-                                        type='number'
-                                        value={cartItem.quantity}
-                                        onChange={(e) => updateCartItemQuantity(cartItem.id, parseInt(e.target.value))}
-                                        className='mx-2 w-12 text-center'
-                                    />
-                                    <button
-                                        onClick={() => updateCartItemQuantity(cartItem.id, cartItem.quantity + 1)}
-                                        className='px-2 py-1 bg-gray-300 rounded'
-                                    >
-                                        +
-                                    </button>
-                                    <button
-                                        onClick={() => removeFromCart(cartItem.id)}
-                                        className='px-2 py-1 bg-black text-white rounded ml-2'
-                                    >
-                                        X
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-                <p className='mt-4 font-bold'>Total: R${getTotal()}</p>
-                <button
-                    onClick={finalizePurchase}
-                    className='mt-4 px-4 py-2 bg-black text-white rounded w-full'
-                >
-                    Finalizar Comprar
-                </button>
+
+            <div className='w-full lg:w-1/4 p-4 bg-white rounded-lg'>
+                <h2 className='text-2xl font-bold mb-4'>Carrinho</h2>
+                <div>
+                    {cart.length === 0 ? (
+                        <p className='text-gray-500'>Seu carrinho está vazio.</p>
+                    ) : (
+                        cart.map((cartItem) => (
+                            <CartItem
+                                key={cartItem.id}
+                                cartItem={cartItem}
+                                onQuantityChange={updateCartItemQuantity}
+                                onRemove={removeFromCart}
+                            />
+                        ))
+                    )}
+                </div>
+                <div className='mt-4'>
+                    <button
+                        onClick={finalizePurchase}
+                        className={`w-full py-2 ${buttonClicked ? 'bg-black scale-95' : 'bg-gray-600'} text-white rounded mt-2 flex justify-center items-center transition-transform duration-200`}
+                        disabled={cart.length === 0}
+                    >
+                        Finalizar Compra
+                    </button>
+                </div>
             </div>
+
+            <CheckoutModal
+                isOpen={isCheckoutModalOpen}
+                onClose={() => setIsCheckoutModalOpen(false)}
+                cart={cart}
+                customerName={customerName}
+                streetAddress={streetAddress}
+                note={note}
+                paymentMethod={paymentMethod}
+                onNameChange={setCustomerName}
+                onAddressChange={setStreetAddress}
+                onNoteChange={setNote}
+                onPaymentMethodChange={setPaymentMethod}
+                supermarketAddress={address}
+                supermarketName={name}
+            />
+
+            <ItemModal
+                item={selectedItem}
+                isOpen={isItemModalOpen}
+                onClose={handleCloseItemModal}
+                onAddToCart={addToCart}
+            />
         </div>
     );
 };

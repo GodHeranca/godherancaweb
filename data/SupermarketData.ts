@@ -1,25 +1,4 @@
-export interface Category {
-  id: number;
-  name: string;
-  image: string;
-}
-
-export interface Item {
-  id: number;
-  categoryId: number;
-  name: string;
-  image: string;
-  price: number;
-  description: string;
-}
-
-export interface Supermarket {
-  name: string;
-  image: string;
-  address: string;
-  categories: Category[];
-  items: Item[];
-}
+import { Supermarket, Item } from './supermarketType';
 
 export const supermarkets: Supermarket[] = [
   {
@@ -39,6 +18,7 @@ export const supermarkets: Supermarket[] = [
         image: '/coke.png',
         price: 1.99,
         description: 'Refreshing beverage',
+        weight: 0.5,
       },
       {
         id: 2,
@@ -47,6 +27,7 @@ export const supermarkets: Supermarket[] = [
         image: '/pepsi.png',
         price: 1.89,
         description: 'Popular cola drink',
+        weight: 0.5,
       },
       {
         id: 3,
@@ -55,6 +36,7 @@ export const supermarkets: Supermarket[] = [
         image: '/lay.jpg',
         price: 2.49,
         description: 'Crispy potato chips',
+        weight: 0.2,
       },
     ],
   },
@@ -74,6 +56,7 @@ export const supermarkets: Supermarket[] = [
         image: '/milk.jpg',
         price: 0.99,
         description: 'Porção de 200ml (1 copo)',
+        weight: 0.2,
       },
       {
         id: 5,
@@ -82,6 +65,7 @@ export const supermarkets: Supermarket[] = [
         image: '/cheese.jpg',
         price: 2.99,
         description: 'Cheddar cheese',
+        weight: 0.3,
       },
       {
         id: 6,
@@ -90,7 +74,10 @@ export const supermarkets: Supermarket[] = [
         image: '/bread.jpg',
         price: 1.49,
         description: 'Pão De Forma SEVEN BOYS Pacote 450g',
+        weight: 0.45,
       },
     ],
   },
 ];
+
+export const items = supermarkets.flatMap((supermarket) => supermarket.items);
