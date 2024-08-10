@@ -1,0 +1,13 @@
+{
+  "username": "Nome de usuário",
+  "email": "Email",
+  "notification": "Notificações",
+  "darkMode": "Modo escuro",
+  "language": "Idioma",
+  "saveChanges": "Salvar alterações",
+  "saving": "Salvando...",
+  "saved": "Configurações salvas com sucesso!",
+  "userSettings": "Configurações do usuário",
+  "setting": "Configuração",
+  "value": "Valor"
+}

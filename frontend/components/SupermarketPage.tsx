@@ -5,7 +5,7 @@ import CartItem from '@/components/CartItem';
 import ItemCard from '@/components/ItemCard';
 import CheckoutModal from '@/components/CheckoutModal';
 import ItemModal from '@/components/ItemModal';
-import { Item } from '@/data/type'; // Import the Item type
+import { Item } from '@/data/supermarketType';
 
 type Category = {
     id: number;
@@ -81,11 +81,12 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
 
     const finalizePurchase = () => {
         setButtonClicked(true);
-        setTimeout(() => setButtonClicked(false), 200); // Reset the button state after 200ms
-
-        setIsLoading(true);
-        setIsCheckoutModalOpen(true);
-        setTimeout(() => setIsLoading(false), 1000); // Simulate a delay for visual feedback
+        setIsLoading(true); // Set loading state to true
+        setTimeout(() => {
+            setButtonClicked(false); // Reset the button state after 200ms
+            setIsLoading(false); // Set loading state to false after 1 second
+            setIsCheckoutModalOpen(true); // Open the checkout modal
+        }, 1000); // Simulate a delay for visual feedback
     };
 
     const handleOpenItemModal = (item: Item) => {
@@ -133,7 +134,7 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
                     />
                 </div>
 
-                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                <div className='grid grid-cols-4 sm:grid-cols-3 lg:grid-cols-5 gap-2 '> {/* Adjusted gap to reduce space between cards */}
                     {filterItemsByCategoryAndSearch().map((item) => (
                         <ItemCard key={item.id} item={item} onAddToCart={addToCart} onClick={() => handleOpenItemModal(item)} />
                     ))}
@@ -160,9 +161,9 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
                     <button
                         onClick={finalizePurchase}
                         className={`w-full py-2 ${buttonClicked ? 'bg-black scale-95' : 'bg-gray-600'} text-white rounded mt-2 flex justify-center items-center transition-transform duration-200`}
-                        disabled={cart.length === 0}
+                        disabled={cart.length === 0 || isLoading} // Disable the button when loading
                     >
-                        Finalizar Compra
+                        {isLoading ? 'Processing...' : 'Finalizar Compra'} {/* Show loading text */}
                     </button>
                 </div>
             </div>

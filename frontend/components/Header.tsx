@@ -3,13 +3,15 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useSearch } from '@/context/SearchContext';
 import dynamic from 'next/dynamic';
-import { LoadScript } from '@react-google-maps/api';
+import { LoadScript, Libraries } from '@react-google-maps/api';
 
 const LocationPrompt = dynamic(() => import('./LocationPrompt'), { ssr: false });
 
 interface HeaderProps {
     setUserLocation: (location: { lat: number; lon: number }) => void;
 }
+
+const libraries: Libraries = ["places"]; // Define the libraries with the correct type
 
 const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
     const { searchQuery, setSearchQuery } = useSearch();
@@ -22,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
         setIsClient(true); // Ensure code runs only on client
     }, []);
 
-    const googleMapsApiKey = `${process.env.GOOGLE_API_KEY}`;
+    const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchQuery(e.target.value);
@@ -103,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
 
     return (
         isClient ? (
-            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={["places"]}>
+            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={libraries}>
                 <nav className='bg-white p-4'>
                     <div className='flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto'>
                         <a href='/'>

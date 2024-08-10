@@ -12,6 +12,9 @@ export interface Item {
   price: number;
   description: string;
   weight: number; // Added weight property
+  unit: string;
+  discount?: number; // Discount percentage (e.g., 20 for 20% off)
+  promotionEnd?: Date; // End date for the promotion
 }
 
 export interface Supermarket {

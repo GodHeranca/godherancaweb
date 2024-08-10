@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useState, useCallback } from 'react';
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
-import { Item } from '@/data/type';
+import { Item } from '@/data/supermarketType';
 
 type CartItem = Item & { quantity: number };
 
@@ -75,10 +75,38 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         );
     };
 
-    const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    const cartTotal = cart.reduce((total, item) => {
+        const itemPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
+        return total + itemPrice * item.quantity;
+    }, 0);
+
+    const convertToStandardUnit = (weight: number, unit: string): number => {
+        switch (unit) {
+            case 'g':
+                return weight / 1000; // Convert grams to kilograms
+            case 'kg':
+                return weight; // Already in kilograms
+            case 'L':
+                return weight; // Assuming 1 liter = 1 kilogram for simplicity
+            default:
+                return weight; // Default case if the unit is not recognized
+        }
+    };
+
+    const totalWeight = cart.reduce((total, item) => {
+        const itemWeightInKgOrLiters = convertToStandardUnit(item.weight, item.unit);
+        return total + itemWeightInKgOrLiters * item.quantity;
+    }, 0);
+
+    const pickingFee = cart.reduce((total, item) => {
+        const itemWeightInKgOrLiters = convertToStandardUnit(item.weight, item.unit);
+        console.log(itemWeightInKgOrLiters)
+        return total + item.quantity * 0.25 + itemWeightInKgOrLiters * 0.03;
+    }, 0);
+
+
     const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
-    const totalWeight = cart.reduce((total, item) => total + (item.weight || 0) * item.quantity, 0);
-    const pickingFee = cart.reduce((total, item) => total + item.quantity * 0.25 + (item.weight || 0) * 0.03, 0);
+    
 
     // Default delivery rate per kilometer
     let deliveryRatePerKilometer = 2;
@@ -90,9 +118,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const total = (cartTotal + pickingFee + deliveryFee).toFixed(2);
 
     const handleSendWhatsApp = () => {
-        const cartItemsMessage = cart.map(item =>
-            `- ${item.name} (x${item.quantity}): R$${(item.price * item.quantity).toFixed(2)}`
-        ).join('\n');
+        const cartItemsMessage = cart.map(item => {
+            const itemPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
+            return `- ${item.name} (x${item.quantity}): R$${(itemPrice * item.quantity).toFixed(2)}`;
+        }).join('\n');
 
         const message = `Order Details:\n\nNome: ${customerName}\nEndereço: ${streetAddress}\nObservação: ${note}\nPayment Method: ${paymentMethod}\n\nSupermercado: ${supermarketName}\n\nItems:\n${cartItemsMessage}\n\nTotal do carrinho: R$${cartTotal.toFixed(2)}\nEscolhendo Taxa: R$${pickingFee.toFixed(2)}\nEntrega Taxa: R$${deliveryFee.toFixed(2)}\nTotal Geral: R$${total}`;
         const phoneNumber = '5551989741442'; // Your phone number without the + sign

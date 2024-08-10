@@ -1,0 +1,10 @@
+{
+  "username": "Username",
+  "email": "Email",
+  "notification": "Notification",
+  "darkMode": "Dark Mode",
+  "language": "Language",
+  "saveChanges": "Save Changes",
+  "saving": "Saving...",
+  "saved": "Settings saved successfully!"
+}

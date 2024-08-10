@@ -8,13 +8,15 @@ type CartItemProps = {
         price: number;
         quantity: number;
         image: string;
+        discount?: number; // Add discount property
     };
     onQuantityChange: (id: number, quantity: number) => void;
     onRemove: (id: number) => void;
 };
 
 const CartItem: React.FC<CartItemProps> = ({ cartItem, onQuantityChange, onRemove }) => {
-    const totalPrice = cartItem.price * cartItem.quantity;
+    const discountedPrice = cartItem.discount ? cartItem.price * (1 - cartItem.discount / 100) : cartItem.price;
+    const totalPrice = discountedPrice * cartItem.quantity;
 
     return (
         <li className='mb-4 flex flex-col sm:flex-row justify-between items-center p-2 border-b border-gray-200'>

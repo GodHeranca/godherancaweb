@@ -1,0 +1,10 @@
+{
+  "username": "Nombre de usuario",
+  "email": "Correo electrónico",
+  "notification": "Notificaciones",
+  "darkMode": "Modo oscuro",
+  "language": "Idioma",
+  "saveChanges": "Guardar cambios",
+  "saving": "Guardando...",
+  "saved": "¡Configuraciones guardadas con éxito!"
+}

@@ -1,7 +1,7 @@
 // components/ItemDetail.tsx
 import React from 'react';
 import Image from 'next/image';
-import { Item } from '@/data/type'; // Import the Item type
+import { Item } from '@/data/supermarketType'; // Import the Item type
 
 interface ItemDetailProps {
     item: Item;

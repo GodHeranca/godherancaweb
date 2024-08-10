@@ -19,6 +19,9 @@ export const supermarkets: Supermarket[] = [
         price: 1.99,
         description: 'Refreshing beverage',
         weight: 0.5,
+        unit: 'kg',
+        discount: 10, // 10% discount
+        promotionEnd: new Date('2024-08-15T23:59:59'), // Promotion end date
       },
       {
         id: 2,
@@ -28,6 +31,9 @@ export const supermarkets: Supermarket[] = [
         price: 1.89,
         description: 'Popular cola drink',
         weight: 0.5,
+        unit: 'kg',
+        discount: 5, // 5% discount
+        promotionEnd: new Date('2024-08-10T23:59:59'),
       },
       {
         id: 3,
@@ -37,6 +43,8 @@ export const supermarkets: Supermarket[] = [
         price: 2.49,
         description: 'Crispy potato chips',
         weight: 0.2,
+        unit: 'kg',
+        // No discount or promotion end date
       },
     ],
   },
@@ -56,7 +64,10 @@ export const supermarkets: Supermarket[] = [
         image: '/milk.jpg',
         price: 0.99,
         description: 'Porção de 200ml (1 copo)',
-        weight: 0.2,
+        weight: 400,
+        unit: 'g',
+        discount: 15, // 15% discount
+        promotionEnd: new Date('2024-08-12T23:59:59'),
       },
       {
         id: 5,
@@ -66,6 +77,9 @@ export const supermarkets: Supermarket[] = [
         price: 2.99,
         description: 'Cheddar cheese',
         weight: 0.3,
+        unit: 'kg',
+        discount: 20, // 20% discount
+        promotionEnd: new Date('2024-08-20T23:59:59'),
       },
       {
         id: 6,
@@ -75,9 +89,14 @@ export const supermarkets: Supermarket[] = [
         price: 1.49,
         description: 'Pão De Forma SEVEN BOYS Pacote 450g',
         weight: 0.45,
+        unit: 'kg',
+        // No discount or promotion end date
       },
     ],
   },
 ];
 
-export const items = supermarkets.flatMap((supermarket) => supermarket.items);
+// Export all items from all supermarkets
+export const items: Item[] = supermarkets.flatMap(
+  (supermarket) => supermarket.items,
+);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Item } from '@/data/type';
+import { Item } from '@/data/supermarketType';
 
 interface ItemModalProps {
     item: Item | null;
@@ -20,6 +20,13 @@ const ItemModal: React.FC<ItemModalProps> = ({ item, isOpen, onClose, onAddToCar
         setTimeout(() => setButtonClicked(false), 200); // Reset the button state after 200ms
     };
 
+    const getPrice = () => {
+        if (item.discount) {
+            return (item.price * (1 - item.discount / 100)).toFixed(2);
+        }
+        return item.price.toFixed(2);
+    };
+
     return (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
             <div className='bg-white p-6 rounded-lg shadow-lg relative max-w-lg w-full'>
@@ -34,7 +41,18 @@ const ItemModal: React.FC<ItemModalProps> = ({ item, isOpen, onClose, onAddToCar
                     <Image src={item.image} alt={item.name} width={150} height={150} className='rounded' />
                     <h2 className='mt-4 text-2xl font-bold text-center'>{item.name}</h2>
                     <p className='text-gray-600 text-center mt-2'>{item.description}</p>
-                    <p className='text-lg font-semibold mt-2'>R${item.price.toFixed(2)}</p>
+                    <p className='text-lg font-semibold mt-2'>
+                        R$
+                        {item.discount ? (
+                            <>
+                                <span className='line-through mr-2'>{item.price.toFixed(2)}</span>
+                                <span className='text-red-500'>{getPrice()}</span>
+                            </>
+                        ) : (
+                            item.price.toFixed(2)
+                        )}
+                    </p>
+                    <p className='text-gray-600 text-center mt-2'>{item.weight} {item.unit}</p>
                     <button
                         onClick={handleButtonClick}
                         className={`mt-4 px-6 py-2 rounded-lg transition-transform duration-200 ease-in-out ${buttonClicked ? 'bg-black text-white scale-95' : 'bg-gray-500 text-white'
