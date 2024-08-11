@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState, useCallback } from 'react';
+import React, { Dispatch, SetStateAction, useState, useCallback, useEffect } from 'react';
 import { LoadScript, Autocomplete } from '@react-google-maps/api';
 import { Item } from '@/data/supermarketType';
 
@@ -129,41 +129,58 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         window.open(url, '_blank');
     };
 
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = ''; // Reset on cleanup
+        };
+    }, [isOpen]);
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        e.stopPropagation(); // Prevent the event from reaching the underlying components
+    };
+
     if (!isOpen) return null;
 
     return (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center'>
-            <div className='bg-white p-4 rounded w-full max-w-md'>
-                <h2 className='text-xl font-bold mb-4'>Confira</h2>
+        <div className='fixed inset-1 bg-black bg-opacity-50 flex justify-center items-center text-black z-50'>
+            <div className='bg-white p-4 rounded w-full max-w-md overflow-y-auto z-60' onScroll={handleScroll}>
+                <h2 className='text-xl font-bold mb-4 text-black'>Confira</h2>
                 <div className='mb-4'>
-                    <label className='block mb-2'>Nome</label>
+                    <label className='block mb-2 text-black'>Nome</label>
                     <input
                         type='text'
                         value={customerName}
                         onChange={(e) => onNameChange(e.target.value)}
-                        className='w-full p-2 border rounded'
+                        className='w-full p-2 border rounded text-black'
                     />
                 </div>
-                <div className='mb-4'>
-                    <label className='block mb-2'>Endereço</label>
+                <div className='mb-4 '>
+                    <label className='block mb-2 text-black'>Endereço</label>
                     <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
                         <input
                             type='text'
                             value={streetAddress}
                             onChange={(e) => onAddressChange(e.target.value)}
-                            className='w-full p-2 border rounded'
+                            className='w-full p-2 border rounded text-black '
                         />
                     </Autocomplete>
                 </div>
                 <div className='mb-4'>
-                    <label className='block mb-2'>Observação</label>
+                    <label className='block mb-2 text-black'>Observação</label>
                     <textarea
                         value={note}
                         onChange={(e) => onNoteChange(e.target.value)}
-                        className='w-full p-2 border rounded'
+                        className='w-full p-2 border rounded text-black'
                     ></textarea>
                 </div>
-                <h2 className='text-xl font-bold mb-4'>Como você vai pagar?</h2>
+                <h2 className='text-xl font-bold mb-4 text-black'>Como você vai pagar?</h2>
                 <div className='flex mb-4'>
                     <button
                         onClick={() => onPaymentMethodChange('Pix')}
@@ -179,11 +196,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </button>
                 </div>
                 <h2 className="text-2xl font-bold mb-4">Tarifas</h2>
-                <p>Supermercado: {supermarketName}</p>
-                <p>Total do carrinho: R${cartTotal.toFixed(2)}</p>
-                <p>Escolhendo Taxa: R${pickingFee.toFixed(2)}</p>
-                <p>Entrega Taxa: R${deliveryFee.toFixed(2)}</p>
-                <p className="mt-4 font-bold">Total Geral: R${total}</p>
+                <p className='text-xl font-semibold text-black'>Supermercado: {supermarketName}</p>
+                <p className='text-xl font-semibold text-black'>Total do carrinho: R${cartTotal.toFixed(2)}</p>
+                <p className='text-xl font-semibold text-black'>Escolhendo Taxa: R${pickingFee.toFixed(2)}</p>
+                <p className='text-xl font-semibold text-black'>Entrega Taxa: R${deliveryFee.toFixed(2)}</p>
+                <p className="mt-4 text-xl font-bold text-black">Total Geral: R${total}</p>
                 <div className='flex mt-4'>
                     <button
                         onClick={onClose}

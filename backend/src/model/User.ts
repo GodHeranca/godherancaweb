@@ -7,6 +7,7 @@ interface IUser extends Document {
   authentication: {
     password: string;
     sessionToken?: string;
+    salt: string
   };
   address?: string[];
   phone?: string;

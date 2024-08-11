@@ -11,17 +11,27 @@ interface HeaderProps {
     setUserLocation: (location: { lat: number; lon: number }) => void;
 }
 
-const libraries: Libraries = ["places"]; // Define the libraries with the correct type
+const libraries: Libraries = ["places"];
 
 const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
     const { searchQuery, setSearchQuery } = useSearch();
-    const [showPrompt, setShowPrompt] = useState(true);
+    const [showPrompt, setShowPrompt] = useState(false);
     const [address, setAddress] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-        setIsClient(true); // Ensure code runs only on client
+        setIsClient(true);
+        const promptShown = localStorage.getItem('promptShown');
+        const storedAddress = localStorage.getItem('userAddress');
+
+        if (storedAddress) {
+            setAddress(storedAddress);
+        }
+
+        if (!promptShown && !storedAddress) {
+            setShowPrompt(true);
+        }
     }, []);
 
     const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '';
@@ -66,6 +76,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                 const location = results[0].geometry.location;
                 setUserLocation({ lat: location.lat(), lon: location.lng() });
                 setAddress(results[0].formatted_address);
+                localStorage.setItem('userAddress', results[0].formatted_address);
             } else {
                 alert('Geocode was not successful.');
             }
@@ -83,7 +94,9 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
         const latlng = new google.maps.LatLng(lat, lon);
         geocoder.geocode({ location: latlng }, (results, status) => {
             if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
-                setAddress(results[0].formatted_address);
+                const formattedAddress = results[0].formatted_address;
+                setAddress(formattedAddress);
+                localStorage.setItem('userAddress', formattedAddress);
             } else {
                 alert('No results found for the given location.');
             }
@@ -94,13 +107,15 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
     const handleConfirmLocation = () => {
         setShowPrompt(false);
         setLoading(true);
-        getLocation(); // Call getLocation when user confirms location
+        getLocation();
+        localStorage.setItem('promptShown', 'true');
     };
 
     const handleManualLocation = (address: string) => {
         setShowPrompt(false);
         manualLocation(address);
         setLoading(true);
+        localStorage.setItem('promptShown', 'true');
     };
 
     return (
@@ -113,10 +128,10 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                                 <Image src='/logo.svg' alt='Logo' width={80} height={80} />
                             </div>
                         </a>
-                        <div className='flex flex-col md:flex-row items-center flex-1 mx-8 mt-4 md:mt-0'>
+                        <div className='flex flex-col md:flex-row items-center flex-1 mx-8 mt-4 md:mt-0 text-black'>
                             <div className='flex items-center space-x-2 flex-shrink-0'>
-                                {address && <span className='truncate w-40'>{address}</span>}
-                                <button onClick={() => setShowPrompt(true)} className='bg-white text-white px-4 py-2 rounded'>
+                                {address && <span className='truncate w-40 text-black'>{address}</span>}
+                                <button onClick={() => setShowPrompt(true)} className='bg-white text-black px-4 py-2 rounded'>
                                     <Image src='/dropdown.png' alt='Dropdown' width={25} height={25} />
                                 </button>
                             </div>
@@ -127,7 +142,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                                 <input
                                     type='text'
                                     placeholder='Procure supermercados atacadistas...'
-                                    className='border-none outline-none px-4 py-2 flex-grow text-lg'
+                                    className='border-none outline-none px-4 py-2 flex-grow text-lg text-black'
                                     value={searchQuery}
                                     onChange={handleSearchChange}
                                 />

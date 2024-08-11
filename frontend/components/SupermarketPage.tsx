@@ -124,24 +124,24 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({ name, image, address,
                     ))}
                 </div>
 
-                <div className='mt-4 mb-4'>
+                <div className='mt-4 mb-4 text-black'>
                     <input
                         type='text'
                         placeholder='Pesquisar itens...'
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className='w-full p-2 border rounded'
+                        className='w-full p-2 border rounded text-black'
                     />
                 </div>
 
-                <div className='grid grid-cols-4 sm:grid-cols-3 lg:grid-cols-5 gap-2 '> {/* Adjusted gap to reduce space between cards */}
+                <div className='grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-4 gap-5 '> {/* Adjusted gap to reduce space between cards */}
                     {filterItemsByCategoryAndSearch().map((item) => (
                         <ItemCard key={item.id} item={item} onAddToCart={addToCart} onClick={() => handleOpenItemModal(item)} />
                     ))}
                 </div>
             </div>
 
-            <div className='w-full lg:w-1/4 p-4 bg-white rounded-lg'>
+            <div className='w-full lg:w-1/2 md:w-1/2 p-4 bg-white rounded-lg'>
                 <h2 className='text-2xl font-bold mb-4'>Carrinho</h2>
                 <div>
                     {cart.length === 0 ? (

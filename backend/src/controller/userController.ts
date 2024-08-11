@@ -1,5 +1,4 @@
-import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import express, { Request, Response } from 'express';
 import User from '../model/User';
 
 // Create User
@@ -47,66 +46,71 @@ export const createUser = (values: Record<string, any>) =>
   new User(values).save().then((user) => user.toObject());
 
 // Update User
-export const updateUser = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-    res.status(200).json(user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
+// export const updateUser = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<void> => {
+//   try {
+//     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+//       new: true,
+//     });
+//     if (!user) {
+//       res.status(404).json({ message: 'User not found' });
+//       return;
+//     }
+//     res.status(200).json(user);
+//   } catch (error: unknown) {
+//     if (error instanceof Error) {
+//       res.status(500).json({ message: error.message });
+//     } else {
+//       res.status(500).json({ message: 'An unexpected error occurred' });
+//     }
+//   }
+// };
+export const updateUserById = (id: string, values: Record<string, any>) =>
+  User.findByIdAndUpdate(id, values);
 
 // Delete User
-export const deleteUser = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
+// export const deleteUser = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<void> => {
+//   try {
+//     const user = await User.findByIdAndDelete(req.params.id);
+//     if (!user) {
+//       res.status(404).json({ message: 'User not found' });
+//       return;
+//     }
+//     res.status(200).json({ message: 'User deleted successfully' });
+//   } catch (error: unknown) {
+//     if (error instanceof Error) {
+//       res.status(500).json({ message: error.message });
+//     } else {
+//       res.status(500).json({ message: 'An unexpected error occurred' });
+//     }
+//   }
+// };
+export const deleteUserById = (id: string) =>
+  User.findOneAndDelete({ _id: id });
 
 // Get Single User
-export const getUser = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-    res.status(200).json(user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
+// export const getUser = async (req: Request, res: Response): Promise<void> => {
+//   try {
+//     const user = await User.findById(req.params.id);
+//     if (!user) {
+//       res.status(404).json({ message: 'User not found' });
+//       return;
+//     }
+//     res.status(200).json(user);
+//   } catch (error: unknown) {
+//     if (error instanceof Error) {
+//       res.status(500).json({ message: error.message });
+//     } else {
+//       res.status(500).json({ message: 'An unexpected error occurred' });
+//     }
+//   }
+// };
+export const getUser = () => User.find();
 
 // Get All Users
 export const getAllUsers = async (

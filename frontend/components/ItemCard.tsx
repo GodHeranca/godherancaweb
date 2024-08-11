@@ -53,7 +53,7 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onAddToCart, onClick }) => {
                 if (onClick) onClick();
                 setImageClicked(true);
             }}
-            style={{ width: '180px' }} // Adjusted width for portability
+            style={{ width: '180px, 360px' }} // Adjusted width for portability
         >
             <Image
                 src={item.image}
@@ -76,7 +76,7 @@ const ItemCard: React.FC<ItemCardProps> = ({ item, onAddToCart, onClick }) => {
             )}
             <button
                 onClick={handleButtonClick}
-                className={`mt-2 px-2 py-1 rounded transition-transform duration-200 ease-in-out text-xs font-semibold ${buttonClicked ? 'bg-black text-white scale-95' : 'bg-gray-500 text-white'
+                className={`mt-2 px-2 py-1 rounded transition-transform duration-200 ease-in-out text-xs font-semibold ${buttonClicked ? 'bg-black text-white scale-95' : 'bg-gray-600 text-white'
                     }`}
             >
                 COMPRAR

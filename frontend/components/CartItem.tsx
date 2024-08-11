@@ -30,7 +30,7 @@ const CartItem: React.FC<CartItemProps> = ({ cartItem, onQuantityChange, onRemov
             <div className='flex items-center'>
                 <button
                     onClick={() => onQuantityChange(cartItem.id, cartItem.quantity - 1)}
-                    className='px-3 py-1 bg-gray-300 rounded-l-lg hover:bg-gray-400 transition'
+                    className='px-3 py-1 bg-gray-600 rounded-l-lg hover:bg-black transition text-white'
                     aria-label='Decrease quantity'
                 >
                     -
@@ -38,7 +38,7 @@ const CartItem: React.FC<CartItemProps> = ({ cartItem, onQuantityChange, onRemov
                 <span className='px-4 py-1 border-t border-b border-gray-300 text-center w-12'>{cartItem.quantity}</span>
                 <button
                     onClick={() => onQuantityChange(cartItem.id, cartItem.quantity + 1)}
-                    className='px-3 py-1 bg-gray-300 rounded-r-lg hover:bg-gray-400 transition'
+                    className='px-3 py-1 bg-gray-600 rounded-r-lg hover:bg-black transition text-white'
                     aria-label='Increase quantity'
                 >
                     +
