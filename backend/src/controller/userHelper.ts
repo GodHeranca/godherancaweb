@@ -113,21 +113,21 @@ export const deleteUserById = (id: string) =>
 export const getUser = () => User.find();
 
 // Get All Users
-export const getAllUsers = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const users = await User.find();
-    res.status(200).json(users);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
+// export const getAllUsers = async (
+//   req: Request,
+//   res: Response,
+// ): Promise<void> => {
+//   try {
+//     const users = await User.find();
+//     res.status(200).json(users);
+//   } catch (error: unknown) {
+//     if (error instanceof Error) {
+//       res.status(500).json({ message: error.message });
+//     } else {
+//       res.status(500).json({ message: 'An unexpected error occurred' });
+//     }
+//   }
+// };
 
 export const getUserBySessionToken = (sessionToken: string) =>
   User.findOne({
@@ -135,6 +135,7 @@ export const getUserBySessionToken = (sessionToken: string) =>
   });
 
 export const getUserByEmail = (email: string) => User.findOne({ email });
+export const getUserById = (id: string) => User.findById(id)
 
 // Verify Account
 export const verifyAccount = async (

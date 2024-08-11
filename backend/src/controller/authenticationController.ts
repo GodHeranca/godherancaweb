@@ -1,5 +1,5 @@
 import express from 'express';
-import { createUser, getUserByEmail } from '../controller/userController';
+import { createUser, getUserByEmail } from './userHelper';
 import { random, authentication } from '../helpers';
 import mongoose from 'mongoose';
 
