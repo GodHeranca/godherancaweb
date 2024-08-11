@@ -8,6 +8,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import router from './router'
 
+// const dotenv = require('dotenv');
+
 dotenv.config(); // Load environment variables
 
 const app = express();
