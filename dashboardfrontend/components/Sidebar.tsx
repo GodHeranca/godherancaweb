@@ -1,10 +1,8 @@
+// Sidebar.tsx
 "use client";
-
-import { useDispatch, useSelector } from "react-redux";
-import { setIsSidebarCollapsed } from "@/app/state/globalSlice"; // Adjust the import path as needed
+import { setIsSidebarCollapsed } from "@/app/state";
 import {
     Archive,
-    CircleDollarSign,
     Clipboard,
     Layout,
     LucideIcon,
@@ -16,7 +14,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
-import { RootState } from "@/app/store/store";
+import { useAppDispatch, useAppSelector } from "../app/redux";
+import { useLogin } from "../app/LoginContext"; // Import the useLogin hook
 
 interface SidebarLinkProps {
     href: string;
@@ -33,28 +32,36 @@ const SidebarLink = ({
 }: SidebarLinkProps) => {
     const pathname = usePathname();
     const isActive =
-        pathname === href || (pathname === "/" && href === "/dashboard");
+        pathname === href || (pathname === "/" && href === "/home");
 
     return (
         <Link href={href}>
             <div
                 className={`cursor-pointer flex items-center ${isCollapsed ? "justify-center py-4" : "justify-start px-8 py-4"
-                    } hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors ${isActive ? "bg-blue-200 text-white" : ""}`}
+                    }
+        hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors ${isActive ? "bg-blue-200 text-white" : ""
+                    }
+      }`}
             >
                 <Icon className="w-6 h-6 !text-gray-700" />
-                {!isCollapsed && (
-                    <span className="font-medium text-gray-700">{label}</span>
-                )}
+
+                <span
+                    className={`${isCollapsed ? "hidden" : "block"
+                        } font-medium text-gray-700`}
+                >
+                    {label}
+                </span>
             </div>
         </Link>
     );
 };
 
 const Sidebar = () => {
-    const dispatch = useDispatch();
-    const isSidebarCollapsed = useSelector(
-        (state: RootState) => state.global.isSidebarCollapsed
+    const dispatch = useAppDispatch();
+    const isSidebarCollapsed = useAppSelector(
+        (state) => state.global.isSidebarCollapsed
     );
+    const { isAuthenticated } = useLogin(); // Get the authentication state from LoginContext
 
     const toggleSidebar = () => {
         dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
@@ -63,14 +70,17 @@ const Sidebar = () => {
     const sidebarClassNames = `fixed flex flex-col ${isSidebarCollapsed ? "w-16" : "w-64"
         } bg-white transition-all duration-300 overflow-hidden h-full shadow-md z-40`;
 
+    if (!isAuthenticated) {
+        return null;
+    }
+
     return (
         <div className={sidebarClassNames}>
-            {/* TOP LOGO */}
             <div
                 className={`flex gap-3 justify-between md:justify-normal items-center pt-8 ${isSidebarCollapsed ? "px-5" : "px-8"
                     }`}
             >
-                <Link href='/dashboard'>
+                <Link href="/home">
                     <Image
                         src="/logo.svg"
                         alt="Godheranca"
@@ -79,11 +89,9 @@ const Sidebar = () => {
                         className="rounded w-8"
                     />
                 </Link>
-                <Link href='/dashboard'>
+                <Link href="/home">
                     {!isSidebarCollapsed && (
-
                         <h1 className="font-extrabold text-xl">GodHerança</h1>
-
                     )}
                 </Link>
 
@@ -95,7 +103,6 @@ const Sidebar = () => {
                 </button>
             </div>
 
-            {/* LINKS */}
             <div className="flex-grow mt-8">
                 <SidebarLink
                     href="/dashboard"
@@ -115,30 +122,25 @@ const Sidebar = () => {
                     label="Products"
                     isCollapsed={isSidebarCollapsed}
                 />
-                {/* <SidebarLink
-                    href="/users"
-                    icon={User}
-                    label="Users"
-                    isCollapsed={isSidebarCollapsed}
-                /> */}
                 <SidebarLink
                     href="/settings"
                     icon={SlidersHorizontal}
                     label="Settings"
                     isCollapsed={isSidebarCollapsed}
                 />
-                {/* <SidebarLink
-                    href="/expenses"
-                    icon={CircleDollarSign}
-                    label="Expenses"
+                <SidebarLink
+                    href="/profile"
+                    icon={User}
+                    label="Profile"
                     isCollapsed={isSidebarCollapsed}
-                /> */}
+                />
             </div>
 
-            {/* FOOTER */}
             {!isSidebarCollapsed && (
                 <div className="mb-10">
-                    <p className="text-center text-xs text-gray-500">&copy; 2024 GodHeranca</p>
+                    <p className="text-center text-xs text-gray-500">
+                        &copy; 2024 GodHeranca
+                    </p>
                 </div>
             )}
         </div>

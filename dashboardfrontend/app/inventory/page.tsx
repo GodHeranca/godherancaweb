@@ -1,4 +1,4 @@
-"use client"
+'use client';
 import React from "react";
 import { DataGrid, GridColDef, GridActionsCellItem } from "@mui/x-data-grid";
 import { items as initialItems } from '../../data/supermarketData'; // Import your items data

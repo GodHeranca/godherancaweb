@@ -1,53 +1,69 @@
 import express from 'express';
-import { createUser, getUserByEmail } from './userHelper';
-import { random, authentication } from '../helpers';
-import mongoose from 'mongoose';
+import { getUserByEmail } from './userHelper'; // Assuming this is the correct import path
+import bcrypt from 'bcrypt'; // Assuming bcrypt is used for password hashing
+import { random, authentication } from '../helpers/index'; // Assuming these utility functions are imported
+import User from '../model/User';
+import { v4 as uuidv4 } from 'uuid';
 
-export const login = async (req: express.Request, res: express.Response) => {
+export const login = async (
+  req: express.Request,
+  res: express.Response,
+): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.sendStatus(400);
+      res.status(400).json({ message: 'Email and password are required' });
+      return;
     }
 
-    const user = await getUserByEmail(email).select(
-      '+authentication.salt +authentication.password',
-    );
+    const user = await getUserByEmail(email);
     if (!user) {
-      return res.sendStatus(400);
+      res.status(400).json({ message: 'Invalid email or password' });
+      return;
     }
 
-    const expectedHash = authentication(user.authentication.salt, password);
-    if (user.authentication.password !== expectedHash) {
-      return res.sendStatus(403);
-    }
-
-    const salt = random();
-    user.authentication.sessionToken = authentication(
-      salt,
-      (user._id as mongoose.Types.ObjectId).toString(),
+    // Check password
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.authentication.password,
     );
+    if (!isPasswordValid) {
+      res.status(403).json({ message: 'Invalid email or password' });
+      return;
+    }
+
+    // Generate session token
+    const salt = random();
+    user.authentication.sessionToken = authentication(salt, user.id.toString());
     await user.save();
 
+    // Set cookie
     res.cookie('GodHeranca-Auth', user.authentication.sessionToken, {
       domain: 'localhost',
       path: '/',
+      // httpOnly: true, // Makes the cookie inaccessible to JavaScript on the client side
+      // secure: true, // Ensures the cookie is sent only over HTTPS
+      // sameSite: 'strict', // Helps prevent CSRF attacks
     });
-    return res.status(200).json(user).end();
+
+    res.status(200).json(user).end();
   } catch (error) {
-    console.log(error);
-    return res.sendStatus(400);
+    console.error(error);
+    res.status(500).json({ message: 'An unexpected error occurred' });
   }
 };
 
-export const register = async (req: express.Request, res: express.Response) => {
+// Create User
+export const register = async (
+  req: express.Request,
+  res: express.Response,
+): Promise<void> => {
   try {
     const {
       username,
       email,
       password,
-      uid,
       address,
       phone,
       userType,
@@ -55,24 +71,29 @@ export const register = async (req: express.Request, res: express.Response) => {
       profile,
     } = req.body;
 
-    if (!username || !email || !password || !uid || !address || !phone || !userType || !profilePicture || !profile) {
-        return res.sendStatus(400);
-    }
-
-    const existingUser = await getUserByEmail(email);
-
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.sendStatus(400);
+      res.status(400).json({ message: 'User already exists with this email' });
+      return;
     }
 
-    const salt = random();
-    const newUser = await createUser({
+    const confirmPassword = password;
+
+    if (password !== confirmPassword) {
+      res.sendStatus(404).json({ message: 'Incorrect password' });
+    }
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const uid = uuidv4();
+
+    const newUser = new User({
       username,
       email,
       uid,
       authentication: {
-        salt,
-        password: authentication(salt, password),
+        password: hashedPassword,
       },
       address,
       phone,
@@ -81,9 +102,14 @@ export const register = async (req: express.Request, res: express.Response) => {
       profile,
     });
 
-    return res.status(200).json(newUser).end();
-  } catch (error) {
-    console.log(error);
-    return res.sendStatus(400);
+    const savedUser = await newUser.save();
+
+    res.status(201).json(savedUser);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'An unexpected error occurred' });
+    }
   }
 };

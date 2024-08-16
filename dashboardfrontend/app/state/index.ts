@@ -1,12 +1,11 @@
-'use client';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export interface GlobalState {
+export interface InitialStateTypes {
   isSidebarCollapsed: boolean;
   isDarkMode: boolean;
 }
 
-const initialState: GlobalState = {
+const initialState: InitialStateTypes = {
   isSidebarCollapsed: false,
   isDarkMode: false,
 };
@@ -24,8 +23,6 @@ export const globalSlice = createSlice({
   },
 });
 
-// Export actions for dispatching in components
 export const { setIsSidebarCollapsed, setIsDarkMode } = globalSlice.actions;
 
-// Export the reducer for the store
 export default globalSlice.reducer;
