@@ -1,20 +1,21 @@
 // types/express.d.ts
-
 import { File } from 'multer';
-import { IUser } from './userTypes'; // Adjust the path as needed
-import { Request } from 'express';
+import { IUser } from './userTypes'; // Adjust the path to where IUser is defined
+import express from 'express'
 
 declare global {
   namespace Express {
     interface Request {
       file?: File;
       files?: File[];
-      storage?: any; // or a more specific type if applicable
-      identity?: IUser; // Make sure this matches your user type
+      identity?: IUser; // Ensure this matches your actual user type
+      user?: IUser; // Make sure this is included
     }
   }
 }
 
-export interface AuthenticatedRequest extends Request {
-  identity: IUser; // Ensure 'identity' is always present
+// Optional: Define a more specific request type for authenticated users
+export interface CustomRequest extends express.Request {
+  user?: IUser; // Custom user property
+  supermarketId?: string;
 }

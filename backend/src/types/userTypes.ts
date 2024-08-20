@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -13,4 +13,9 @@ export interface IUser extends Document {
   userType: 'Admin' | 'Driver' | 'Supermarket' | 'Client' | 'Picker';
   profilePicture?: string;
   profile: string;
+  supermarketId?: mongoose.Schema.Types.ObjectId; // For Supermarket
+  driverId?: mongoose.Schema.Types.ObjectId; // For Driver
+  clientId?: mongoose.Schema.Types.ObjectId; // For Client
+  pickerId?: mongoose.Schema.Types.ObjectId; // For Picker
+  adminId?: mongoose.Schema.Types.ObjectId; //
 }

@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation"; // Ensure correct import
 import ProfileClient from "./ProfileClient";
-import { useLogin } from "../LoginContext"; // Import the useLogin hook
+import { useLogin } from "../context/LoginContext"; // Import the useLogin hook
 
 const ProfilePage = () => {
     const { isAuthenticated, user } = useLogin(); // Get authentication state and user data from LoginContext

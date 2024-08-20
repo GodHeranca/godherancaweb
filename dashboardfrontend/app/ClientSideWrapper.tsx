@@ -1,11 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useAppSelector, RootState } from './redux'
-import Header from "../components/Header";
-import Sidebar from "../components/Sidebar";
-import { I18nextProvider } from "react-i18next";
-import i18n from "../language/i18n"; // Adjust path as necessary
-import StoreProvider from "./redux";
+import Header from "../app/components/Header";
+import Sidebar from "../app/components/Sidebar";
 
 const ClientSideLayout = ({ children }: { children: React.ReactNode }) => {
     const isSidebarCollapsed = useAppSelector((state: RootState) => state.global.isSidebarCollapsed);
@@ -45,11 +42,8 @@ const ClientSideLayout = ({ children }: { children: React.ReactNode }) => {
 
 const ClientSideWrapper = ({ children }: { children: React.ReactNode }) => {
     return (
-        // <StoreProvider>
-            // {/* <I18nextProvider i18n={i18n}> */}
                 <ClientSideLayout>{children}</ClientSideLayout>
-            // {/* </I18nextProvider> */}
-        // </StoreProvider>
+
     );
 };
 

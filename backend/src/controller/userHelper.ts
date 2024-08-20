@@ -1,106 +1,23 @@
 import express from 'express';
 import User from '../model/User';
-import { IUser } from '../types/userTypes';
-import bcrypt from 'bcrypt'
-
-
-
-// Update User
-export const updateUserById = async (
-  req: express.Request,
-  res: express.Response,
-): Promise<void> => {
-  try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-    res.status(200).json(user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
-
-// Delete User
-export const deleteUserById = async (
-  req: express.Request,
-  res: express.Response,
-): Promise<void> => {
-  try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
-
-// Get Single User
-export const getUserById = async (
-  req: express.Request,
-  res: express.Response,
-): Promise<void> => {
-  try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
-    res.status(200).json(user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
-
-// Get All Users
-export const getAllUsers = async (
-  req: express.Request,
-  res: express.Response,
-): Promise<void> => {
-  try {
-    const users = await User.find();
-    res.status(200).json(users);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
-    }
-  }
-};
 
 // Get User by Session Token
-export const getUserBySessionToken = async (
-  sessionToken: string,
-): Promise<IUser | null> => {
-  return User.findOne({
-    'authentication.sessionToken': sessionToken,
-  }).exec();
+export const getUserBySessionToken = async (sessionToken: string) => {
+  try {
+    const user = await User.findOne({
+      'authentication.sessionToken': sessionToken,
+    }).exec();
+    console.log('User found by session token:', user);
+    return user;
+  } catch (error) {
+    console.error('Error finding user by session token:', error);
+    throw error;
+  }
 };
+
 
 // Get User by Email
-export const getUserByEmail = async (email: string): Promise<IUser | null> => {
-  return User.findOne({ email }).exec();
-};
-
+export const getUserByEmail = (email: string) => User.findOne({email})
 // Verify Account
 export const verifyAccount = async (
   req: express.Request,

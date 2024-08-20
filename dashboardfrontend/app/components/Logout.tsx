@@ -1,7 +1,7 @@
 // LogoutButton.tsx
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { logout } from '../app/state/authSlice'; // Adjust the path accordingly
+import { clearUser } from '../state/authSlice'; // Adjust the path accordingly
 
 const Logout = () => {
     const dispatch = useDispatch();
@@ -9,7 +9,7 @@ const Logout = () => {
 
     const handleLogout = async () => {
         // Perform any additional logout logic here if needed, such as invalidating a session token
-        dispatch(logout()); // Clear user data from Redux store
+        dispatch(clearUser()); // Clear user data from Redux store
         router.push('/login'); // Redirect to login page after logout
     };
 

@@ -7,14 +7,37 @@ import {
   updateItemsById,
   getItemsByCategory,
 } from '../controller/itemController';
-import { upload } from '../middlewares/upload';
-import { isAuthenticated, isOwner } from '../middlewares';
+import { upload, fileUpload } from '../middlewares/upload';
+import {
+  isAuthenticated,
+  isOwner,
+  isSupermarketOwner,
+} from '../middlewares';
 
-export default (router: express.Router) => { 
-    router.post('/item', isAuthenticated, isOwner, upload.single('image'), addItem);
-    router.get('/item/:id', getItemsById);
-    router.put('/item/:id', isAuthenticated, isOwner, upload.single('image'), updateItemsById);
-    router.delete('/item/:id', isAuthenticated, isOwner, deleteItemsById);
-    router.get('/supermarket/:supermarketId/items', getItemsBySupermarket);
-    router.get('/category/:categoryId/items', getItemsByCategory);
-}
+export default (router: express.Router) => {
+  router.post(
+    '/item/:id',
+    isAuthenticated,
+    upload.single('imageUrl'),
+    fileUpload,
+    addItem,
+  );
+  router.get('/item/:id', getItemsById);
+  router.patch(
+    '/item/:id',
+    isAuthenticated,
+    isSupermarketOwner,
+    upload.single('imageUrl'),
+    fileUpload,
+    updateItemsById,
+  );
+  router.delete(
+    '/item/:id',
+    isAuthenticated,
+    isSupermarketOwner,
+    deleteItemsById,
+  );
+  router.get('/supermarket/:supermarketId/items', getItemsBySupermarket);
+  router.get('/category/:categoryId/items', getItemsByCategory);
+};
+

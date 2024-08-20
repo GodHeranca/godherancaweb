@@ -44,18 +44,37 @@ const Signup = () => {
 
     const onSubmit: SubmitHandler<SignupFormInputs> = async (data) => {
         try {
-            const registrationResponse = await axios.post('http://localhost:8080/auth/register', data);
+            // Ensure address is an array, even if it's a single string
+            const addressArray = data.address.split(',').map(addr => addr.trim());
+
+            // Update data to include address as an array
+            const registrationData = { ...data, address: addressArray };
+
+            const registrationResponse = await axios.post('http://localhost:8080/auth/register', registrationData);
             if (registrationResponse.status === 201) {
                 setSuccess('Registration successful! You can now log in.');
                 setError('');
             } else {
-                throw new Error('Registration failed');
+                setError('Registration failed. Please try again.');
             }
-        } catch (err) {
-            console.error('Registration failed', err);
-            setError('Registration failed. Please try again.');
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                if (err.response) {
+                    setError(`Registration failed: ${err.response.data.message || 'Please try again.'}`);
+                } else if (err.request) {
+                    setError('No response from the server. Please try again.');
+                } else {
+                    setError(`Error: ${err.message}`);
+                }
+            } else if (err instanceof Error) {
+                setError(`Error: ${err.message}`);
+            } else {
+                setError('An unexpected error occurred. Please try again.');
+            }
         }
     };
+
+
 
     return (
         <div className="flex justify-center items-start min-h-screen bg-gray-50 pt-12 sm:pt-20">

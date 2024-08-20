@@ -1,23 +1,10 @@
 import express from 'express';
-// import { deleteUserById, getUser, getUserById } from './userHelper';
-import cloudinaryStorage from '../helpers/cloudinary';
-import localStorage from '../helpers/local';
 import User from '../model/User';
-
-
-// export const getAllUsers = async (
-//   req: express.Request,
-//   res: express.Response,
-// ) => {
-//   try {
-//     const users = await getUser();
-
-//     return res.status(200).json(users).end();
-//   } catch (error) {
-//     console.log(error);
-//     return res.sendStatus(400);
-//   }
-// };
+import Admin from '../model/Admin';
+import Client from '../model/Client';
+import Driver from '../model/Driver';
+import Picker from '../model/Picker';
+import Supermarket from '../model/Supermarket';
 
 export const getAllUsers = async (
   req: express.Request,
@@ -54,46 +41,77 @@ export const deleteUser = async (
     }
   }
 };
-// export const deleteUser = async (
-//   req: express.Request,
-//   res: express.Response,
-// ) => {
-//   try {
-//     const { id } = req.params;
-
-//     const deletedUser = await deleteUserById(id);
-
-//     return res.json(deletedUser);
-//   } catch (error) {
-//     console.log(error);
-//     return res.sendStatus(400);
-//   }
-// };
 
 export const updateUser = async (
   req: express.Request,
   res: express.Response,
 ): Promise<void> => {
   try {
+    console.log('Received Update Request:', req.body);
+    console.log('Received File:', req.file);
+
     const { id } = req.params;
     const updates = req.body;
 
+    // Handle profile picture upload
     if (req.file) {
-      updates.profilePicture = req.file.path; // Assuming you're using a middleware like Multer to handle file uploads
+      updates.profilePicture = await req.storage?.uploadFile(req.file);
     }
 
-    const user = await User.findByIdAndUpdate(id, updates, {
-      new: true,
-      runValidators: true,
-    });
-
+    const user = await User.findById(id);
     if (!user) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
 
-    res.status(200).json(user);
-  } catch (error) {
+    const updatedUser = await User.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      res.status(404).json({ message: 'User not found' });
+      return;
+    }
+
+    // Update associated entity based on userType
+    switch (user.userType) {
+      case 'Supermarket':
+        await Supermarket.findByIdAndUpdate(user.supermarketId, {
+          name: updatedUser.profile,
+          image: updatedUser.profilePicture || '',
+          address: updatedUser.address ? updatedUser.address.join(', ') : '',
+        });
+        break;
+
+      case 'Driver':
+        await Driver.findByIdAndUpdate(user.driverId, {
+          name: updatedUser.profile,
+          licenseNumber: updatedUser.profile,
+        });
+        break;
+
+      case 'Client':
+        await Client.findByIdAndUpdate(user.clientId, {
+          name: updatedUser.profile,
+        });
+        break;
+
+      case 'Picker':
+        await Picker.findByIdAndUpdate(user.pickerId, {
+          name: updatedUser.profile,
+        });
+        break;
+
+      case 'Admin':
+        await Admin.findByIdAndUpdate(user.adminId, {
+          name: updatedUser.profile,
+        });
+        break;
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error: unknown) {
     if (error instanceof Error) {
       res.status(500).json({ message: error.message });
     } else {
@@ -101,6 +119,8 @@ export const updateUser = async (
     }
   }
 };
+
+
 
 
 export const getUserOnly = async (
@@ -122,23 +142,3 @@ export const getUserOnly = async (
     }
   }
 };
-
-// export const getUserOnly = async (req: express.Request, res: express.Response) => {
-//   try {
-//     const { id } = req.params;
-
-//     // Retrieve user by id using the helper function
-//     const user = await getUserById(id);
-
-//     // If no user is found, return a 404 response
-//     if (!user) {
-//       return res.sendStatus(404);
-//     }
-
-//     // If user is found, return the user object
-//     return res.status(200).json(user);
-//   } catch (error) {
-//     console.error('Error in getUser:', error);
-//     return res.sendStatus(400);
-//   }
-// };

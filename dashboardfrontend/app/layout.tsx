@@ -1,9 +1,7 @@
-
-import RootComponent from './RootComponent'; // Adjust the path as necessary
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import RootComponentWithProvider from './RootComponent';
+import RootComponentWithProvider from './context/RootComponent';
 
 const inter = Inter({ subsets: ['latin'] });
 

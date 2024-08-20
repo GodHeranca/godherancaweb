@@ -104,7 +104,7 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
-    "typeRoots": ["./node_modules/@types", "./types"]
+    "typeRoots": ["./node_modules/@types", "./types"] // Adjust to your type definitions directory
   },
-  "include": ["src/**/*", "types.d.ts"]
+  "include": ["src/**/*", "types/**/*"]
 }

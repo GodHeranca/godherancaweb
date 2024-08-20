@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useLogin } from '../LoginContext'; // Ensure the path is correct
+import { useLogin } from '../context/LoginContext'; // Ensure the path is correct
 
 const Login = () => {
     const [email, setEmail] = useState<string>('');
@@ -22,6 +22,7 @@ const Login = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include', // Include cookies
                 body: JSON.stringify({ email, password }),
             });
 
@@ -31,11 +32,13 @@ const Login = () => {
 
             const data = await response.json();
 
-            // Pass the entire user object to the login function
-            login(data);
+            console.log(data);
+
+            // Pass the email and password to the login function
+            await login(email, password);
 
             // Redirect to the profile page
-            router.push('/profile');
+            router.push('/inventory');
         } catch (err) {
             console.error(err);
             setError('Invalid email or password');
@@ -43,6 +46,7 @@ const Login = () => {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="flex justify-center items-start min-h-screen bg-stone-50 pt-12 sm:pt-20">

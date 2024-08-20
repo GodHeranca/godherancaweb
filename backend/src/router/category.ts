@@ -1,6 +1,6 @@
 import express from 'express';
-import { isAuthenticated, isOwner } from '../middlewares';
-import { upload } from '../middlewares/upload';
+import { isAuthenticated, isCategoryOwner, isOwner } from '../middlewares';
+import { fileUpload, upload } from '../middlewares/upload';
 import {
   getCategory,
   getAllCategory,
@@ -11,20 +11,21 @@ import {
 
 export default (router: express.Router) => {
   router.post(
-    '/category',
-    isAuthenticated,
-    isOwner,
-    upload.single('image'),
-    createCategory,
+    '/category/:id',
+    isAuthenticated, // Only check if the user is authenticated
+    upload.single('image'), // Handle the image upload
+    fileUpload,
+    createCategory, // Handle the category creation
   );
-  router.put(
+  router.patch(
     '/category/:id',
     isAuthenticated,
-    isOwner,
+    isCategoryOwner,
     upload.single('image'),
+    fileUpload,
     updateCategory,
   );
-  router.delete('/category/:id', isAuthenticated, isOwner, deleteCategory);
+  router.delete('/category/:id', isAuthenticated,isCategoryOwner, deleteCategory);
   router.get('/category/:id', getCategory);
   router.get('/category', getAllCategory);
 };

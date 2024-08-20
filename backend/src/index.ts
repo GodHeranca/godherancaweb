@@ -8,6 +8,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import router from './router';
 
+
 dotenv.config(); // Load environment variables
 
 const app = express();
@@ -22,18 +23,8 @@ app.use(
   }),
 );
 
-// app.options(
-//   '*',
-//   cors({
-//     origin: 'http://localhost:3000',
-//     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-//     allowedHeaders: ['Content-Type', 'Authorization'],
-//     credentials: true,
-//   }),
-// );
-
 // Middleware for parsing request bodies
-app.use(express.json()); // You don't need bodyParser.json() if using express.json()
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(compression());
@@ -62,6 +53,7 @@ const server = http.createServer(app);
 server.listen(8080, () => {
   console.log('Server running on http://localhost:8080/');
 });
+
 
 // Connect to MongoDB
 mongoose.Promise = Promise;

@@ -1,13 +1,31 @@
 import express from 'express';
 import Item from '../model/Item';
-import { upload } from '../middlewares/upload';
+import mongoose from 'mongoose';
+import User from '../model/User';
+import Category from '../model/Category';
+import { Types } from 'mongoose';
+
+export const checkSupermarketOwnership = async (
+  userId: string,
+  supermarketId: string,
+): Promise<boolean> => {
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return false; // User not found
+    }
+    return user.supermarketId?.toString() === supermarketId;
+  } catch (error) {
+    console.error('Error in checkSupermarketOwnership:', error);
+    return false;
+  }
+};
 
 // Add a new item
 export const addItem = async (req: express.Request, res: express.Response) => {
   try {
     const {
-      id,
-      categoryId,
+      category,
       name,
       price,
       description,
@@ -16,17 +34,64 @@ export const addItem = async (req: express.Request, res: express.Response) => {
       unit,
       discount,
       promotionEnd,
+      supermarket,
     } = req.body;
-    let imageUrl = '';
 
-    // Handle the image upload if an image file is provided
-    if (req.file) {
-      imageUrl = req.file.path; // Assuming `path` contains the uploaded image URL
+    // Check for required fields
+    if (
+      !category ||
+      !name ||
+      !price ||
+      !description ||
+      !weight ||
+      !stockQuantity ||
+      !unit ||
+      !supermarket
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'All required fields must be provided' });
     }
 
+    if (!req.user) {
+      return res.status(403).json({ message: 'User is not authenticated' });
+    }
+
+    const userId = req.user.id;
+
+    // Verify that the user is the owner of the supermarket
+    const isOwner = await checkSupermarketOwnership(userId, supermarket);
+    if (!isOwner) {
+      return res.status(403).json({
+        message:
+          'User does not have permission to add items to this supermarket',
+      });
+    }
+
+    let imageUrl: string = '';
+
+    // Handle file upload
+    if (req.file) {
+      if (!req.storage) {
+        return res.status(500).json({ message: 'Storage setup is missing' });
+      }
+
+      const uploadedImageUrl = await req.storage.uploadFile(req.file);
+
+      if (uploadedImageUrl) {
+        imageUrl = uploadedImageUrl;
+      } else {
+        return res.status(500).json({ message: 'Failed to upload file' });
+      }
+    } else if (req.body.image) {
+      imageUrl = req.body.image;
+    } else {
+      return res.status(400).json({ message: 'Image is required' });
+    }
+
+    // Create and save new item
     const newItem = new Item({
-      id,
-      categoryId,
+      category,
       name,
       image: imageUrl,
       price,
@@ -35,7 +100,8 @@ export const addItem = async (req: express.Request, res: express.Response) => {
       stockQuantity,
       unit,
       discount,
-      promotionEnd,
+      promotionEnd: promotionEnd ? new Date(promotionEnd) : undefined,
+      supermarket,
     });
 
     const savedItem = await newItem.save();
@@ -73,7 +139,13 @@ export const getItemsBySupermarket = async (
 ) => {
   try {
     const { supermarketId } = req.params;
-    const items = await Item.find({ supermarketId });
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(supermarketId)) {
+      return res.status(400).json({ message: 'Invalid supermarketId format' });
+    }
+
+    const items = await Item.find({ supermarket: supermarketId });
 
     if (!items.length) {
       return res
@@ -95,7 +167,7 @@ export const getItemsByCategory = async (
 ) => {
   try {
     const { categoryId } = req.params;
-    const items = await Item.find({ categoryId });
+    const items = await Item.find({ category: categoryId });
 
     if (!items.length) {
       return res
@@ -110,6 +182,7 @@ export const getItemsByCategory = async (
   }
 };
 
+// Update item by ID
 // Update item by ID
 export const updateItemsById = async (
   req: express.Request,
@@ -126,21 +199,25 @@ export const updateItemsById = async (
       unit,
       discount,
       promotionEnd,
+      category: categoryId, // Expect category ID
+      supermarket,
     } = req.body;
-    let imageUrl = '';
 
+    // Check if the category exists by ID
+    if (categoryId) {
+      const categoryObj = await Category.findById(categoryId);
+      if (!categoryObj) {
+        return res.status(400).json({ message: 'Invalid category ID' });
+      }
+    }
+
+    // Find the item to update
     const item = await Item.findById(id);
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    // Handle the image upload if an image file is provided
-    if (req.file) {
-      imageUrl = req.file.path; // Assuming `path` contains the uploaded image URL
-      item.image = imageUrl;
-    }
-
-    // Update fields if provided in the request body
+    // Update fields if provided
     item.name = name || item.name;
     item.price = price || item.price;
     item.description = description || item.description;
@@ -148,8 +225,26 @@ export const updateItemsById = async (
     item.stockQuantity = stockQuantity || item.stockQuantity;
     item.unit = unit || item.unit;
     item.discount = discount || item.discount;
-    item.promotionEnd = promotionEnd || item.promotionEnd;
+    item.promotionEnd = promotionEnd
+      ? new Date(promotionEnd)
+      : item.promotionEnd;
+    item.supermarket = supermarket || item.supermarket;
+    item.category = categoryId || item.category;
 
+    // Handle image URL update
+    if (req.file) {
+      if (!req.storage) {
+        return res.status(500).json({ message: 'Storage setup is missing' });
+      }
+      const uploadedImageUrl = await req.storage.uploadFile(req.file);
+      if (uploadedImageUrl) {
+        item.image = uploadedImageUrl;
+      } else {
+        return res.status(500).json({ message: 'Failed to upload file' });
+      }
+    }
+
+    // Save the updated item
     const updatedItem = await item.save();
     return res.status(200).json(updatedItem);
   } catch (error) {
@@ -157,6 +252,7 @@ export const updateItemsById = async (
     return res.status(500).json({ message: 'Error updating item', error });
   }
 };
+
 
 // Delete item by ID
 export const deleteItemsById = async (

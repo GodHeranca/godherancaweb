@@ -19,5 +19,5 @@ export default (router: express.Router) => {
     fileUpload,
     updateUser,
   );
-  router.get('/users/:id', getUserOnly);
+  router.get('/users/:id', isAuthenticated, isOwner, getUserOnly);
 };

@@ -1,5 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
+export type UserType = 'Admin' | 'Driver' | 'Supermarket' | 'Client' | 'Picker';
 interface IUser extends Document {
   username: string;
   email: string;
@@ -7,13 +8,18 @@ interface IUser extends Document {
   authentication: {
     password: string;
     sessionToken?: string;
-    salt: string
+    salt: string;
   };
   address?: string[];
   phone?: string;
-  userType: 'Admin' | 'Driver' | 'Supermarket' | 'Client' | 'Picker';
+  userType: UserType;
   profilePicture?: string;
   profile: string;
+  supermarketId?: Types.ObjectId; // For Supermarket
+  driverId?: mongoose.Schema.Types.ObjectId; // For Driver
+  clientId?: mongoose.Schema.Types.ObjectId; // For Client
+  pickerId?: mongoose.Schema.Types.ObjectId; // For Picker
+  adminId?: mongoose.Schema.Types.ObjectId; // For Admin
 }
 
 const UserSchema: Schema = new mongoose.Schema(
@@ -40,8 +46,34 @@ const UserSchema: Schema = new mongoose.Schema(
     },
     profilePicture: { type: String, required: false },
     profile: { type: String, required: true },
+    supermarketId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Supermarket',
+      required: false,
+    },
+    clientId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Client',
+      required: false,
+    },
+    driverId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Driver',
+      required: false,
+    },
+    pickerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Picker',
+      required: false,
+    },
+    adminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin',
+      required: false,
+    },
   },
   { timestamps: true },
 );
 
-export default mongoose.model<IUser>('User', UserSchema);
+const User = mongoose.model<IUser>('User', UserSchema);
+export default User;

@@ -1,10 +1,5 @@
 import express from 'express';
 import { login, register } from '../controller/authenticationController';
-import {
-  upload,
-  fileUpload,
-  handleFileSizeLimitException,
-} from '../middlewares/upload';
 
 export default (router: express.Router) => {
   // Registration route

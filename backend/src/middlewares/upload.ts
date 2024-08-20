@@ -1,18 +1,13 @@
 import multer from 'multer';
+import path from 'path';
 import logger from '../utils/logger';
 import response from '../utils/response';
 import localStorage from '../helpers/local';
 import cloudinaryStorage from '../helpers/cloudinary';
 import { Request, Response, NextFunction } from 'express';
-import {
-  ALLOWED_FILE_UPLOAD_EXTENSIONS,
-  MAX_FILE_SIZE,
-  LIMIT_FILE_SIZE,
-  UNSUPPORTED_FILE_TYPE,
-} from '../constants/app';
 import dotenv from 'dotenv';
 
-dotenv.config(); 
+dotenv.config();
 
 declare global {
   namespace Express {
@@ -24,7 +19,6 @@ declare global {
   }
 }
 
-// Multer setup
 const storage = multer.memoryStorage();
 
 const handleFileSizeLimitException = (
@@ -34,7 +28,7 @@ const handleFileSizeLimitException = (
   next: NextFunction,
 ) => {
   if (error.code === 'LIMIT_FILE_SIZE') {
-    return response(res, 413, LIMIT_FILE_SIZE);
+    return response(res, 413, 'File size limit exceeded.');
   }
   next(error);
 };
@@ -45,12 +39,12 @@ const fileFilter = (
   cb: (error: any, acceptFile: boolean) => void,
 ) => {
   try {
-    const allowedExtension = ALLOWED_FILE_UPLOAD_EXTENSIONS;
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
     const fileExtension = file.originalname.split('.').pop()?.toLowerCase();
-    if (allowedExtension.includes(fileExtension as string)) {
+    if (allowedExtensions.includes(fileExtension as string)) {
       return cb(null, true);
     }
-    const error = new Error(UNSUPPORTED_FILE_TYPE);
+    const error = new Error('Unsupported file type.');
     error.name = 'UnsupportedFileTypeError';
     return cb(error, false);
   } catch (err) {
@@ -63,7 +57,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: MAX_FILE_SIZE,
+    fileSize: 5 * 1024 * 1024, // 5 MB max file size
   },
 });
 

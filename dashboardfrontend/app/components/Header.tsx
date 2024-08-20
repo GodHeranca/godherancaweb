@@ -1,11 +1,11 @@
-import { useAppDispatch, useAppSelector, RootState } from "../app/redux";
+import { useAppDispatch, useAppSelector, RootState } from "../redux";
 import { useState, useEffect } from "react";
-import { setIsSidebarCollapsed, setIsDarkMode } from "../app/state";
+import { setIsSidebarCollapsed, setIsDarkMode } from "../state";
 import { Menu, Moon, Sun } from "lucide-react";
 import { FaCog, FaSearch, FaUserCircle } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
-import { useLogin } from "../app/LoginContext"; // Adjust this import to your actual LoginContext path
+import { useLogin } from "../context/LoginContext"; // Adjust this import to your actual LoginContext path
 
 const Header: React.FC = () => {
     const dispatch = useAppDispatch();
@@ -17,7 +17,7 @@ const Header: React.FC = () => {
     );
 
     const [mounted, setMounted] = useState(false);
-    const { isAuthenticated, logout } = useLogin(); // Use the LoginContext to determine if the user is logged in and handle logout
+    const { isAuthenticated, logout, user } = useLogin(); // Retrieve the user object from LoginContext
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
@@ -96,14 +96,18 @@ const Header: React.FC = () => {
 
                     <div className="relative">
                         <button onClick={toggleDropdown} className="flex items-center gap-2 cursor-pointer">
-                            {isAuthenticated ? (
-                                <Image
-                                    src="/desco.png"
-                                    alt="Profile"
-                                    width={40}
-                                    height={40}
-                                    className="rounded-full h-full object-cover"
-                                />
+                            {isAuthenticated && user ? (
+                                <div
+                                    className="relative w-20 h-20 rounded-full overflow-hidden"
+                                    style={{ width: '60px', height: '60px' }} // Ensure the container is square
+                                >
+                                    <Image
+                                        src={user.profilePicture || ''}
+                                        alt="Profile"
+                                        fill
+                                        className="object-cover"
+                                    />
+                                </div>
                             ) : (
                                 <FaUserCircle className="text-2xl cursor-pointer text-gray-500" />
                             )}
@@ -135,14 +139,14 @@ const Header: React.FC = () => {
                                     <>
                                         <Link
                                             href="/login"
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600 rounded-md"
                                             onClick={closeDropdown}
                                         >
                                             Login
                                         </Link>
                                         <Link
                                             href="/signup"
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600 rounded-md"
                                             onClick={closeDropdown}
                                         >
                                             Sign Up
@@ -153,12 +157,15 @@ const Header: React.FC = () => {
                         )}
                     </div>
                 </div>
-                <Link href="/settings">
-                    <FaCog
-                        className="text-2xl cursor-pointer"
-                        title="Settings"
-                    />
-                </Link>
+
+                {isAuthenticated && (
+                    <Link href="/settings">
+                        <FaCog
+                            className="text-2xl cursor-pointer"
+                            title="Settings"
+                        />
+                    </Link>
+                )}
             </div>
         </div>
     );

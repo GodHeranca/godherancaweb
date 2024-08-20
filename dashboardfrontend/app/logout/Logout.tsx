@@ -1,5 +1,5 @@
 import { useDispatch } from 'react-redux';
-import { logout } from '../state/authSlice';
+import { clearUser } from '../state/authSlice';
 import { useRouter } from 'next/router';
 
 const Logout = () => {
@@ -7,7 +7,7 @@ const Logout = () => {
     const router = useRouter();
 
     const handleLogout = () => {
-        dispatch(logout());
+        dispatch(clearUser());
         router.push('/'); // Redirect to home after logout
     };
 

@@ -6,7 +6,7 @@ import {
   getSupermarket,
   getAllSupermarkets,
 } from '../controller/supermarketController';
-import { isAuthenticated, isOwner } from '../middlewares';
+import { isAuthenticated, isOwner, isSupermarketOwner } from '../middlewares';
 import { upload } from '../middlewares/upload';
 
 export default (router: express.Router) => {
@@ -14,7 +14,7 @@ export default (router: express.Router) => {
   router.post(
     '/supermarket',
     isAuthenticated,
-    isOwner,
+    isSupermarketOwner,
     upload.single('image'),
     addSupermarket,
   );
@@ -22,7 +22,7 @@ export default (router: express.Router) => {
   router.delete(
     '/supermarkets/:id',
     isAuthenticated,
-    isOwner,
+    isSupermarketOwner,
     deleteSupermarket,
   );
   router.get('/supermarket', getAllSupermarkets);
