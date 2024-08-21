@@ -128,41 +128,36 @@ export const isSupermarketOwner = async (
 
 
 
+
 export const isCategoryOwner = async (
-  req: CustomRequest,
+  req: express.Request,
   res: express.Response,
   next: express.NextFunction,
 ) => {
   try {
-    const { id } = req.params; // The ID of the category from the route parameters
-    const currentUserId = req.user?._id?.toString(); // The ID of the authenticated user
+    const { id } = req.params;
+    const userId = req.user?._id;
 
-    console.log('Current User ID:', currentUserId);
-    console.log('Category ID:', id);
-
-    if (!currentUserId) {
-      console.log('User ID is undefined');
-      return res.sendStatus(403); // Forbidden if the user ID is undefined
+    if (!userId) {
+      return res.status(403).json({ message: 'User not authenticated' });
     }
 
-    // Fetch the category by ID
-    const category = await Category.findById(id).exec();
+    const category = await Category.findById(id);
     if (!category) {
-      console.log('Category not found');
-      return res.sendStatus(404); // Not Found if the category doesn't exist
+      return res.status(404).json({ message: 'Category not found' });
     }
 
-    console.log('Category userId:', category.userId);
-
-    // Check if the current user owns the category by comparing userId
-    if (!category.userId || category.userId.toString() !== currentUserId) {
-      console.log('User does not own the category');
-      return res.sendStatus(403); // Forbidden if the user doesn't own the category
+    if (category.userId.toString() !== userId.toString()) {
+      return res
+        .status(403)
+        .json({ message: 'User does not own this category' });
     }
 
-    return next(); // Proceed to the next middleware or route handler
+    next();
   } catch (error) {
     console.error('Error in isCategoryOwner middleware:', error);
-    return res.sendStatus(500); // Internal Server Error
+    return res
+      .status(500)
+      .json({ message: 'Error checking category ownership', error });
   }
 };

@@ -6,13 +6,17 @@ export const createCategory = async (
   res: express.Response,
 ) => {
   try {
-    const { name } = req.body;
+    const { name, supermarketId } = req.body; // Extract supermarketId from request body
     let imageUrl: string = '';
 
     // Ensure userId is available from authenticated user
     const userId = req.user?._id;
     if (!userId) {
       return res.status(403).json({ message: 'User not authenticated' });
+    }
+
+    if (!supermarketId) {
+      return res.status(400).json({ message: 'Supermarket ID is required' });
     }
 
     // Handle the image upload if an image file is provided
@@ -34,7 +38,8 @@ export const createCategory = async (
     const newCategory = new Category({
       name,
       image: imageUrl,
-      userId: req.user?._id, // Set userId here
+      userId, // Set userId here
+      supermarketId, // Set supermarketId here
     });
 
     const savedCategory = await newCategory.save();
@@ -44,6 +49,7 @@ export const createCategory = async (
     return res.status(500).json({ message: 'Error creating category', error });
   }
 };
+
 
 export const updateCategory = async (
   req: express.Request,
@@ -162,18 +168,23 @@ export const getCategory = async (
   res: express.Response,
 ) => {
   try {
-    const { id } = req.params;
-    const category = await Category.findById(id);
+    const { supermarketId } = req.params;
 
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
+    // Fetch all categories for the given supermarketId
+    const categories = await Category.find({ supermarketId });
+
+    if (!categories || categories.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'No categories found for this supermarket' });
     }
 
-    return res.status(200).json(category);
+    return res.status(200).json(categories);
   } catch (error) {
-    console.error('Error retrieving category:', error);
+    console.error('Error retrieving categories:', error);
     return res
       .status(500)
-      .json({ message: 'Error retrieving category', error });
+      .json({ message: 'Error retrieving categories', error });
   }
 };
+

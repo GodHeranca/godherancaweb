@@ -90,7 +90,7 @@ const Products = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800">Products</h2>
                 <button
-                    className="flex items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                    className="flex items-center bg-gray-300 hover:bg-black-400 text-white font-bold py-2 px-4 rounded-lg"
                     onClick={() => {
                         setEditingProduct(null); // Clear editing state when creating a new product
                         setIsModalOpen(true);

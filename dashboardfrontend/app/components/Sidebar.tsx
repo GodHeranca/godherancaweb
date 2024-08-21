@@ -3,7 +3,6 @@ import { setIsSidebarCollapsed } from "@/app/state";
 import {
     Archive,
     Clipboard,
-    Layout,
     LucideIcon,
     Menu,
     SlidersHorizontal,
@@ -38,7 +37,7 @@ const SidebarLink = ({
         <Link href={href}>
             <div
                 className={`cursor-pointer flex items-center ${isCollapsed ? "justify-center py-4" : "justify-start px-8 py-4"
-                    } hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors ${isActive ? "bg-blue-200 text-white" : ""
+                    } hover:text-gray-500 hover:bg-gray-300 gap-3 transition-colors ${isActive ? "bg-gray-200 text-white" : ""
                     }`}
             >
                 <Icon className="w-6 h-6 !text-gray-700" />

@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import axios from 'axios';
 import { useLogin } from './LoginContext';
+import { useSupermarket } from './SupermarketContext';
+
 
 
 export interface Category {
@@ -8,6 +10,7 @@ export interface Category {
     name: string;
     image?: string;
     userId: string; // userId as a string, which represents the ID of the user
+    supermarketId: string;
 }
 
 
@@ -24,6 +27,7 @@ const CategoryContext = createContext<CategoryContextType | undefined>(undefined
 export const CategoryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const { user, isAuthenticated } = useLogin();
+    const {supermarketId} = useSupermarket()
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -35,7 +39,7 @@ export const CategoryProvider: React.FC<{ children: ReactNode }> = ({ children }
         if (!isAuthenticated || !user?._id) return;
 
         try {
-            const response = await axios.get<Category[]>('http://localhost:8080/category', {
+            const response = await axios.get<Category[]>(`http://localhost:8080/category/${user.supermarketId}/category`, {
                 headers: {
                     'Authorization': `Bearer ${user._id}`,
                     'Content-Type': 'multipart/form-data',
@@ -50,13 +54,17 @@ export const CategoryProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
 
     const createCategory = async (formData: FormData) => {
-        if (!isAuthenticated || !user) {
-            throw new Error('User is not authenticated');
+        if (!isAuthenticated || !user || !supermarketId) {
+            throw new Error('User is not authenticated or supermarketId is missing');
         }
+
         try {
-            await axios.post(`http://localhost:8080/category/${user._id}`, formData, {
+            // Append supermarketId to the FormData
+            formData.append('supermarketId', supermarketId);
+
+            await axios.post(`http://localhost:8080/category/${supermarketId}`, formData, {
                 headers: {
-                    'Authorization': `Bearer ${user?._id}`,
+                    'Authorization': `Bearer ${user._id}`,
                     'Content-Type': 'multipart/form-data',
                     'Accept': 'application/json',
                 },

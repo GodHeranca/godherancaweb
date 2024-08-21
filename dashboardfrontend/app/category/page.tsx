@@ -11,6 +11,7 @@ const CategoriesPage = () => {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const handleCreate = () => {
         setEditingCategory(null);
@@ -65,6 +66,10 @@ const CategoriesPage = () => {
         }
     };
 
+    const filteredCategories = categories.filter(category =>
+        category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     if (!isAuthenticated) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -76,15 +81,24 @@ const CategoriesPage = () => {
     return (
         <div className="container mx-auto p-6 max-w-screen-lg">
             <h1 className="text-3xl font-bold mb-6">Categories</h1>
-            <button
-                onClick={handleCreate}
-                className="bg-black-300 text-white px-4 py-2 rounded-lg mb-4 hover:bg-blue-700 transition"
-                disabled={loading}
-            >
-                Add Category
-            </button>
+            <div className="flex justify-between mb-4">
+                <input
+                    type="text"
+                    placeholder="Search categories..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="border p-2 rounded-lg flex-grow mr-4"
+                />
+                <button
+                    onClick={handleCreate}
+                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-black-400 transition"
+                    disabled={loading}
+                >
+                    Add Category
+                </button>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {categories.map((category) => (
+                {filteredCategories.map((category) => (
                     <div key={category._id} className="border shadow rounded-lg p-4 bg-white">
                         {category.image && (
                             <img

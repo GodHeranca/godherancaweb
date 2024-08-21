@@ -1,4 +1,4 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 import { createThemes } from 'tw-colors';
 import colors from 'tailwindcss/colors';
 
@@ -12,7 +12,7 @@ const baseColors = [
   'purple',
   'pink',
   'black',
-  'white'
+  'white',
 ];
 
 const shadeMapping = {
@@ -50,8 +50,8 @@ const themes = {
   },
   dark: {
     ...darkTheme,
-    white: colors.gray['950'],
-    black: colors.gray['50'],
+    white: colors.gray['50'],
+    black: colors.gray['600'],
   },
 };
 
@@ -73,4 +73,5 @@ const config: Config = {
   },
   plugins: [createThemes(themes)],
 };
+
 export default config;

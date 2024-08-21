@@ -56,7 +56,7 @@ const Header: React.FC = () => {
     if (!mounted) return null;
 
     return (
-        <div className="flex justify-between items-center w-full mb-4">
+        <div className="flex justify-between items-center w-full mb-4 bg-white">
             <div className="flex justify-between items-center gap-5">
                 <button
                     className="px-3 py-3 bg-gray-100 rounded-full hover:bg-blue-100"
@@ -79,7 +79,7 @@ const Header: React.FC = () => {
 
             <div className="flex justify-between items-center gap-5">
                 <div className="hidden md:flex justify-between items-center gap-5">
-                    <button onClick={toggleDarkMode}>
+                    {/* <button onClick={toggleDarkMode}>
                         {isDarkMode ? (
                             <Sun
                                 className="cursor-pointer text-gray-500"
@@ -91,7 +91,7 @@ const Header: React.FC = () => {
                                     size={24}
                                 />
                         )}
-                    </button>
+                    </button> */}
                     <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
 
                     <div className="relative">
@@ -118,7 +118,7 @@ const Header: React.FC = () => {
                                     <>
                                         <Link
                                             href="/profile"
-                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            className="block px-4 py-2 text-sm text-black-700 hover:bg-gray-400"
                                             onClick={closeDropdown}
                                         >
                                             View Profile
@@ -129,7 +129,7 @@ const Header: React.FC = () => {
                                                     logout();
                                                     closeDropdown();
                                                 }}
-                                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                className="block w-full text-left px-4 py-2 text-sm text-black-700 hover:bg-gray-400"
                                             >
                                                 Logout
                                             </button>
@@ -139,14 +139,14 @@ const Header: React.FC = () => {
                                     <>
                                         <Link
                                             href="/login"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600 rounded-md"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-600 rounded-md"
                                             onClick={closeDropdown}
                                         >
                                             Login
                                         </Link>
                                         <Link
                                             href="/signup"
-                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-600 rounded-md"
+                                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-600 rounded-md"
                                             onClick={closeDropdown}
                                         >
                                             Sign Up

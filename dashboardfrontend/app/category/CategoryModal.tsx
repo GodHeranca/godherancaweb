@@ -29,9 +29,11 @@ const CategoryForm: React.FC<CategoryFormProps> = ({ category, onSave, onCancel 
         onSave({
             name,
             _id: '',
-            userId: ''
+            userId: '',
+            supermarketId: '' // Ensure this gets filled in
         }, imageFile || undefined); // Use undefined if imageFile is null
     };
+
 
 
     return (

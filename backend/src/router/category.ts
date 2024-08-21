@@ -26,6 +26,6 @@ export default (router: express.Router) => {
     updateCategory,
   );
   router.delete('/category/:id', isAuthenticated,isCategoryOwner, deleteCategory);
-  router.get('/category/:id', getCategory);
+  router.get('/category/:supermarketId/category', getCategory);
   router.get('/category', getAllCategory);
 };

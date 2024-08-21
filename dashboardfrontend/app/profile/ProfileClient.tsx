@@ -1,33 +1,33 @@
 import { useState, useEffect } from "react";
-import { useLogin } from "../context/LoginContext";// Ensure the path is correct
+import { useLogin } from "../context/LoginContext";
 import Image from "next/image";
 
 const ProfileClient = () => {
-    const { user, updateUser, updateProfilePicture } = useLogin(); // Correct function name
-    const [isEditing, setIsEditing] = useState(false);
+    const { user, updateUser, updateProfilePicture } = useLogin();
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         profilePicture: '',
-        address: '', // Expecting a single string
+        address: '',
         phone: '',
         profile: '',
         id: ''
     });
     const [file, setFile] = useState<File | null>(null);
+    const [isEditing, setIsEditing] = useState(false); // State to track edit mode
 
     useEffect(() => {
         if (user) {
             setFormData({
                 username: user.username || '',
                 email: user.email || '',
-                profilePicture: user.profilePicture || '', // Initially, it's the URL
-                address: user.address.join('') || '', // Convert array to string for formData
+                profilePicture: user.profilePicture || '',
+                address: user.address.join('') || '',
                 phone: user.phone || '',
                 profile: user.profile || '',
                 id: user._id || ''
             });
-            setFile(null); // Reset file state when user data is loaded
+            setFile(null);
         }
     }, [user]);
 
@@ -39,48 +39,44 @@ const ProfileClient = () => {
         }));
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0] || null;
         setFile(selectedFile);
 
         if (selectedFile) {
-            // Create a preview URL for the selected file
             const fileUrl = URL.createObjectURL(selectedFile);
             setFormData(prevState => ({
                 ...prevState,
-                profilePicture: fileUrl // Use the preview URL for display purposes
+                profilePicture: fileUrl
             }));
+
+            try {
+                await updateProfilePicture(selectedFile);
+            } catch (error) {
+                console.error('Failed to update profile picture:', error);
+            }
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Form Data:", formData);
-        console.log("File:", file);
 
         if (user) {
             try {
-                if (file) {
-                    // Call updateProfilePicture function if there's a new profile picture
-                    await updateProfilePicture(file);
-                }
-
-                // Call updateUser for the rest of the form data
                 const data = new FormData();
                 data.append('username', formData.username);
                 data.append('email', formData.email);
-                data.append('address', formData.address); // Ensure address is a string
+                data.append('address', formData.address);
                 data.append('phone', formData.phone);
                 data.append('profile', formData.profile);
 
                 await updateUser(data);
-                setIsEditing(false);
+                setIsEditing(false); // Close edit mode after successful save
             } catch (error) {
                 console.error('Failed to update profile:', error);
             }
         }
     };
-
 
     if (!user) return <div>No user data available.</div>;
 
@@ -181,15 +177,15 @@ const ProfileClient = () => {
                         </div>
                     </form>
                 ) : (
-                        <div className="flex flex-col gap-4">
-                            <div className="text-2xl font-bold">{user.username}</div>
-                            <div className="text-md">{user.email}</div>
-                            <div className="text-md">{user.address}</div>
-                            <div className="text-md">{user.phone}</div>
-                            <div className="text-md">{user.profile}</div>
-                            <button
-                                onClick={() => setIsEditing(true)}
-                            className="mt-4 px-4 py-2 bg-black-500 text-white rounded w-full md:w-auto"
+                    <div className="flex flex-col gap-4">
+                        <div className="text-2xl font-bold">{user.username}</div>
+                        <div className="text-md">{user.email}</div>
+                        <div className="text-md">{user.address}</div>
+                        <div className="text-md">{user.phone}</div>
+                        <div className="text-md">{user.profile}</div>
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="mt-4 px-4 py-2 bg-gray-500 text-white hover:bg-black-400 rounded w-full md:w-auto"
                         >
                             Edit Profile
                         </button>
