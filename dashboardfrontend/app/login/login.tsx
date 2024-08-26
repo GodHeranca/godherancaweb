@@ -1,8 +1,9 @@
-"use client";
-
+"use client"
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLogin } from '../context/LoginContext'; // Ensure the path is correct
+import { useDispatch } from 'react-redux';
+import { setUser, setToken, clearUser, clearToken } from '../state/authSlice'; // Update path as needed
 import Link from 'next/link';
 
 const Login = () => {
@@ -12,6 +13,35 @@ const Login = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const { login } = useLogin();
     const router = useRouter();
+    const dispatch = useDispatch();
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        const resetTimeout = () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            timeoutRef.current = setTimeout(() => {
+                // Clear user and token from Redux state
+                dispatch(clearUser());
+                dispatch(clearToken());
+                router.push('/login');
+            }, 15 * 60 * 1000); // 15 minutes in milliseconds
+        };
+
+        // Reset the timeout on any user activity
+        window.addEventListener('mousemove', resetTimeout);
+        window.addEventListener('keydown', resetTimeout);
+        resetTimeout();
+
+        return () => {
+            window.removeEventListener('mousemove', resetTimeout);
+            window.removeEventListener('keydown', resetTimeout);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, [dispatch, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,11 +62,19 @@ const Login = () => {
             }
 
             const data = await response.json();
-
             console.log(data);
 
             // Pass the email and password to the login function
             await login(email, password);
+
+            // Update Redux state with user and token
+            dispatch(setUser(data.user));
+            dispatch(setToken(data.token));
+
+            // Reset the timeout on successful login
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
 
             // Redirect to the profile page
             router.push('/inventory');

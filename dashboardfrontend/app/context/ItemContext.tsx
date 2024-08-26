@@ -3,6 +3,10 @@ import axios from 'axios';
 import { useLogin } from './LoginContext';
 import { useSupermarket } from './SupermarketContext';
 
+export interface QuantityOffer {
+    quantity: number;
+    price: number;
+}
 export interface Item {
     _id: string;
     category: string;
@@ -17,6 +21,7 @@ export interface Item {
     discount?: number; // This is possibly undefined
     promotionEnd?: Date; // This is possibly undefined
     supermarket: string;
+    quantityOffers?: QuantityOffer[]; // New property for quantity offers
 }
 
 interface ItemContextType {
@@ -55,6 +60,8 @@ export const ItemProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 if (value !== undefined) {
                     if (key === 'promotionEnd' && value instanceof Date) {
                         formData.append(key, value.toISOString());
+                    } else if (key === 'quantityOffers') {
+                        formData.append(key, JSON.stringify(value)); // Stringify quantityOffers array
                     } else {
                         formData.append(key, value as string | Blob);
                     }
@@ -147,6 +154,8 @@ export const ItemProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 if (value !== undefined) {
                     if (key === 'promotionEnd' && value instanceof Date) {
                         formData.append(key, value.toISOString());
+                    } else if (key === 'quantityOffers') {
+                        formData.append(key, JSON.stringify(value)); // Stringify quantityOffers array
                     } else {
                         formData.append(key, value as string | Blob);
                     }

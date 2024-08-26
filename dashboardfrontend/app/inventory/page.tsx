@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     useTable,
@@ -19,6 +18,10 @@ interface Item {
     name: string;
     price: number;
     stockQuantity: number;
+}
+
+interface ItemRow extends Row<Item> {
+    getToggleRowSelectedProps: () => any;
 }
 
 const Inventory = () => {
@@ -44,7 +47,7 @@ const Inventory = () => {
 
     useEffect(() => {
         if (isAuthenticated && supermarketId && isInitialLoad) {
-            fetchItems().then(() => setIsInitialLoad(false)); // Set initial load to false after fetching
+            fetchItems().then(() => setIsInitialLoad(false));
         }
     }, [isAuthenticated, supermarketId, fetchItems, isInitialLoad]);
 
@@ -58,7 +61,7 @@ const Inventory = () => {
 
                     useEffect(() => {
                         if (checkboxRef.current) {
-                            checkboxRef.current.indeterminate = indeterminate;
+                            checkboxRef.current.indeterminate = !!indeterminate;
                         }
                     }, [indeterminate]);
 
@@ -68,17 +71,29 @@ const Inventory = () => {
                             id="select-all"
                             {...rest}
                             ref={checkboxRef}
-                            indeterminate={indeterminate ? "true" : undefined} // Set as a string or omit
                         />
                     );
                 },
-                Cell: ({ row }: { row: Row<Item> }) => (
-                    <input
-                        type="checkbox"
-                        id={`select-row-${row.original._id}`}
-                        {...(row as any).getToggleRowSelectedProps()}
-                    />
-                ),
+                Cell: ({ row }: { row: Row<Item> }) => {
+                    // Use type assertion to inform TypeScript that getToggleRowSelectedProps exists
+                    const { indeterminate, ...rest } = (row as any).getToggleRowSelectedProps();
+                    const checkboxRef = useRef<HTMLInputElement>(null);
+
+                    useEffect(() => {
+                        if (checkboxRef.current) {
+                            checkboxRef.current.indeterminate = !!indeterminate;
+                        }
+                    }, [indeterminate]);
+
+                    return (
+                        <input
+                            type="checkbox"
+                            id={`select-row-${row.original._id}`}
+                            {...rest}
+                            ref={checkboxRef}
+                        />
+                    );
+                },
                 width: 50,
             },
             { Header: 'ID', accessor: '_id' },
@@ -93,7 +108,7 @@ const Inventory = () => {
                 Header: 'Actions',
                 Cell: ({ row }: CellProps<Item>) => (
                     <button
-                        className="text-red-500"
+                        className="bg-gray-400 hover:bg-black-300 text-white px-4 py-2 rounded"
                         onClick={() => {
                             console.log(`Deleting item with ID: ${row.original._id}`);
                             deleteItem(row.original._id);
@@ -125,7 +140,7 @@ const Inventory = () => {
         },
         useRowSelect,
         hooks => {
-            // No need to add columns here
+            // No additional hooks needed here
         }
     ) as TableInstance<Item> & {
         state: {
@@ -135,7 +150,7 @@ const Inventory = () => {
     };
 
     const handleDeleteSelected = useCallback(() => {
-        console.log("Selected Row IDs:", selectedRowIds);  // Log selected row IDs
+        console.log("Selected Row IDs:", selectedRowIds);
         if (Object.keys(selectedRowIds).length === 0) return;
         Object.keys(selectedRowIds).forEach(id => {
             console.log(`Deleting selected item with ID: ${id}`);
@@ -148,7 +163,7 @@ const Inventory = () => {
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Inventory</h1>
                 <button
-                    className="bg-red-500 text-white px-4 py-2 rounded"
+                    className="bg-black-300 text-white px-4 py-2 rounded"
                     onClick={handleDeleteSelected}
                     disabled={Object.keys(selectedRowIds).length === 0}
                 >
@@ -161,32 +176,36 @@ const Inventory = () => {
                     className="min-w-full bg-white shadow rounded-lg border border-gray-200"
                 >
                     <thead>
-                        {headerGroups.map(headerGroup => (
-                            <tr
-                                {...headerGroup.getHeaderGroupProps()}
-                                className="bg-gray-100 border-b"
-                            >
-                                {headerGroup.headers.map(column => (
-                                    <th
-                                        {...column.getHeaderProps()}
-                                        className="p-3 text-left border-b"
-                                    >
-                                        {column.render('Header')}
-                                    </th>
-                                ))}
-                            </tr>
-                        ))}
+                        {headerGroups.map(headerGroup => {
+                            const { key, ...headerGroupProps } = headerGroup.getHeaderGroupProps();
+
+                            return (
+                                <tr key={key} {...headerGroupProps} className="bg-gray-100 border-b">
+                                    {headerGroup.headers.map(column => {
+                                        const { key: columnKey, ...columnProps } = column.getHeaderProps();
+
+                                        return (
+                                            <th key={columnKey} {...columnProps} className="p-3 text-left border-b">
+                                                {column.render('Header')}
+                                            </th>
+                                        );
+                                    })}
+                                </tr>
+                            );
+                        })}
                     </thead>
                     <tbody {...getTableBodyProps()}>
                         {rows.map(row => {
                             prepareRow(row);
                             const { key, ...rowProps } = row.getRowProps();
+
                             return (
                                 <tr key={key} {...rowProps} className="hover:bg-gray-50">
                                     {row.cells.map(cell => {
-                                        const { key, ...cellProps } = cell.getCellProps();
+                                        const { key: cellKey, ...cellProps } = cell.getCellProps();
+
                                         return (
-                                            <td key={key} {...cellProps} className="p-3 border-b">
+                                            <td key={cellKey} {...cellProps} className="p-3 border-b">
                                                 {cell.render('Cell')}
                                             </td>
                                         );

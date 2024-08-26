@@ -90,7 +90,7 @@ const Products = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold text-gray-800">Products</h2>
                 <button
-                    className="flex items-center bg-gray-300 hover:bg-black-400 text-white font-bold py-2 px-4 rounded-lg"
+                    className="flex items-center bg-gray-300 hover:bg-gray-400 text-white font-bold py-2 px-4 rounded-lg"
                     onClick={() => {
                         setEditingProduct(null); // Clear editing state when creating a new product
                         setIsModalOpen(true);
@@ -108,7 +108,7 @@ const Products = () => {
                     filteredProducts.map((product) => {
                         const isPromotionActive = product.promotionEnd && new Date(product.promotionEnd) >= new Date();
                         const displayPrice = isPromotionActive && product.discount
-                            ? product.discountedPrice || product.price * (1 - (product.discount / 100))
+                            ? product.price * (1 - (product.discount / 100))
                             : product.price;
 
                         return (
@@ -136,6 +136,15 @@ const Products = () => {
                                         <span>${Number(displayPrice).toFixed(2)}</span>
                                     )}
                                 </div>
+                                {product.quantityOffers && product.quantityOffers.length > 0 && (
+                                    <div className="text-sm text-gray-600 mb-2">
+                                        {product.quantityOffers.map((offer, index) => (
+                                            <div key={index}>
+                                                Offer: Buy {offer.quantity} or more for ${Number(offer.price).toFixed(2)} each
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="text-sm text-gray-600 mb-2">
                                     Stock: {product.stockQuantity || 'N/A'}
                                 </div>
@@ -159,7 +168,7 @@ const Products = () => {
                                         <EditIcon className="w-5 h-5 mr-2" /> Edit
                                     </button>
                                     <button
-                                        className="flex items-center bg-gray-700 hover:bg-black-300 text-white font-bold py-2 px-4 rounded-lg"
+                                        className="flex items-center bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded-lg"
                                         onClick={() => handleDeleteProduct(product._id)}
                                     >
                                         <Trash2Icon className="w-5 h-5 mr-2" /> Delete

@@ -1,23 +1,23 @@
 import React, { Dispatch, SetStateAction, useState, useCallback, useEffect } from 'react';
-import { LoadScript, Autocomplete } from '@react-google-maps/api';
-import { Item } from '@/data/supermarketType';
+import { Autocomplete } from '@react-google-maps/api';
+import { Item } from '../../context/SupermarketContext';
 
 type CartItem = Item & { quantity: number };
 
 interface CheckoutModalProps {
     isOpen: boolean;
     onClose: () => void;
-    cart: CartItem[];
+    cart: Item[];
     customerName: string;
     streetAddress: string;
     note: string;
     paymentMethod: 'Pix' | 'credit-card' | null;
-    onNameChange: Dispatch<SetStateAction<string>>;
-    onAddressChange: Dispatch<SetStateAction<string>>;
-    onNoteChange: Dispatch<SetStateAction<string>>;
-    onPaymentMethodChange: Dispatch<SetStateAction<'Pix' | 'credit-card' | null>>;
+    onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onAddressChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onNoteChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    onPaymentMethodChange: (method: 'Pix' | 'credit-card' | null) => void;
     supermarketAddress: string;
-    supermarketName: string; // Add supermarketName prop
+    supermarketName: string;
 }
 
 const CheckoutModal: React.FC<CheckoutModalProps> = ({
@@ -33,7 +33,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     onNoteChange,
     onPaymentMethodChange,
     supermarketAddress,
-    supermarketName // Destructure supermarketName
+    supermarketName
 }) => {
     const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
     const [distance, setDistance] = useState<number | null>(null);
@@ -42,17 +42,29 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         setAutocomplete(autoC);
     }, []);
 
+    const handleAddressChange = (address: string) => {
+        // Create a synthetic event with the address
+        const event = {
+            target: {
+                value: address
+            }
+        } as React.ChangeEvent<HTMLInputElement>;
+        onAddressChange(event);
+    };
+
     const onPlaceChanged = useCallback(() => {
         if (autocomplete) {
             const place = autocomplete.getPlace();
             if (place.formatted_address) {
-                onAddressChange(place.formatted_address);
+                handleAddressChange(place.formatted_address);
                 calculateDistance(place.formatted_address);
             }
         }
-    }, [autocomplete, onAddressChange]);
+    }, [autocomplete]);
 
     const calculateDistance = (address: string) => {
+        if (!supermarketAddress || !address) return;
+
         const service = new google.maps.DistanceMatrixService();
 
         service.getDistanceMatrix(
@@ -62,10 +74,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 travelMode: google.maps.TravelMode.DRIVING,
             },
             (response, status) => {
-                if (status === 'OK' && response) {
+                if (status === 'OK' && response?.rows[0]?.elements[0]?.distance) {
                     const distanceInMeters = response.rows[0].elements[0].distance.value;
-                    const distanceInKilometers = distanceInMeters / 1000; // Convert to kilometers
-
+                    const distanceInKilometers = distanceInMeters / 1000;
                     setDistance(distanceInKilometers);
                 } else {
                     console.error('Error calculating distance:', status);
@@ -83,13 +94,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const convertToStandardUnit = (weight: number, unit: string): number => {
         switch (unit) {
             case 'g':
-                return weight / 1000; // Convert grams to kilograms
+                return weight / 1000;
             case 'kg':
-                return weight; // Already in kilograms
+                return weight;
             case 'L':
-                return weight; // Assuming 1 liter = 1 kilogram for simplicity
+                return weight;
             default:
-                return weight; // Default case if the unit is not recognized
+                return weight;
         }
     };
 
@@ -100,18 +111,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     const pickingFee = cart.reduce((total, item) => {
         const itemWeightInKgOrLiters = convertToStandardUnit(item.weight, item.unit);
-        console.log(itemWeightInKgOrLiters)
-        return total + item.quantity * 0.25 + itemWeightInKgOrLiters * 0.03;
+        return total + item.quantity * 0.25 + itemWeightInKgOrLiters * 0.25;
     }, 0);
 
-
     const totalQuantity = cart.reduce((total, item) => total + item.quantity, 0);
-    
 
-    // Default delivery rate per kilometer
     let deliveryRatePerKilometer = 2;
-    if (totalQuantity > 100 || totalWeight > 150) {
-        deliveryRatePerKilometer = 4; // Increased rate
+    if (totalQuantity > 100 || totalWeight > 30) {
+        deliveryRatePerKilometer = 4;
     }
 
     const deliveryFee = distance ? distance * deliveryRatePerKilometer : 0;
@@ -120,16 +127,16 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     const handleSendWhatsApp = () => {
         const cartItemsMessage = cart.map(item => {
             const itemPrice = item.discount ? item.price * (1 - item.discount / 100) : item.price;
-            return `- ${item.name} (x${item.quantity}): R$${(itemPrice * item.quantity).toFixed(2)}`;
+            return `- ${item.name} (x${item.quantity}): R$${(itemPrice * item.quantity).toFixed(2)}\n  Descrição: ${item.description}`;
         }).join('\n');
 
-        const message = `Order Details:\n\nNome: ${customerName}\nEndereço: ${streetAddress}\nObservação: ${note}\nPayment Method: ${paymentMethod}\n\nSupermercado: ${supermarketName}\n\nItems:\n${cartItemsMessage}\n\nTotal do carrinho: R$${cartTotal.toFixed(2)}\nEscolhendo Taxa: R$${pickingFee.toFixed(2)}\nEntrega Taxa: R$${deliveryFee.toFixed(2)}\nTotal Geral: R$${total}`;
-        const phoneNumber = '5551989741442'; // Your phone number without the + sign
+        const message = `Detalhes do pedido:\n\nNome: ${customerName}\nEndereço: ${streetAddress}\nObservação: ${note}\nMétodo de Pagamento: ${paymentMethod}\n\nSupermercado: ${supermarketName}\nEndereço do Supermercado: ${supermarketAddress}\n\nItens:\n${cartItemsMessage}\n\nTotal do carrinho: R$${cartTotal.toFixed(2)}\nEscolhendo Taxa: R$${pickingFee.toFixed(2)}\nEntrega Taxa: R$${deliveryFee.toFixed(2)}\nTotal Geral: R$${total}`;
+        const phoneNumber = '5551989741442'; // Replace with the actual phone number
         const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
     };
 
-    // Prevent body scroll when modal is open
+
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -138,49 +145,49 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         }
 
         return () => {
-            document.body.style.overflow = ''; // Reset on cleanup
+            document.body.style.overflow = '';
         };
     }, [isOpen]);
 
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        e.stopPropagation(); // Prevent the event from reaching the underlying components
+        e.stopPropagation();
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className='fixed inset-1 bg-black bg-opacity-50 flex justify-center items-center text-black z-50'>
-            <div className='bg-white p-4 rounded w-full max-w-md overflow-y-auto z-60' onScroll={handleScroll}>
-                <h2 className='text-xl font-bold mb-4 text-black'>Confira</h2>
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50'>
+            <div className='bg-white p-4 rounded w-full max-w-md overflow-y-auto' onScroll={handleScroll}>
+                <h2 className='text-xl font-bold mb-4'>Confira</h2>
                 <div className='mb-4'>
-                    <label className='block mb-2 text-black'>Nome</label>
+                    <label className='block mb-2'>Nome</label>
                     <input
                         type='text'
                         value={customerName}
-                        onChange={(e) => onNameChange(e.target.value)}
-                        className='w-full p-2 border rounded text-black'
+                        onChange={(e) => onNameChange(e)}
+                        className='w-full p-2 border rounded'
                     />
                 </div>
-                <div className='mb-4 '>
-                    <label className='block mb-2 text-black'>Endereço</label>
+                <div className='mb-4'>
+                    <label className='block mb-2'>Endereço</label>
                     <Autocomplete onLoad={onLoad} onPlaceChanged={onPlaceChanged}>
                         <input
                             type='text'
                             value={streetAddress}
-                            onChange={(e) => onAddressChange(e.target.value)}
-                            className='w-full p-2 border rounded text-black '
+                            onChange={(e) => handleAddressChange(e.target.value)}
+                            className='w-full p-2 border rounded'
                         />
                     </Autocomplete>
                 </div>
                 <div className='mb-4'>
-                    <label className='block mb-2 text-black'>Observação</label>
+                    <label className='block mb-2'>Observação</label>
                     <textarea
                         value={note}
-                        onChange={(e) => onNoteChange(e.target.value)}
-                        className='w-full p-2 border rounded text-black'
+                        onChange={(e) => onNoteChange(e)}
+                        className='w-full p-2 border rounded'
                     ></textarea>
                 </div>
-                <h2 className='text-xl font-bold mb-4 text-black'>Como você vai pagar?</h2>
+                <h2 className='text-xl font-bold mb-4'>Como você vai pagar?</h2>
                 <div className='flex mb-4'>
                     <button
                         onClick={() => onPaymentMethodChange('Pix')}
@@ -196,11 +203,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     </button>
                 </div>
                 <h2 className="text-2xl font-bold mb-4">Tarifas</h2>
-                <p className='text-xl font-semibold text-black'>Supermercado: {supermarketName}</p>
-                <p className='text-xl font-semibold text-black'>Total do carrinho: R${cartTotal.toFixed(2)}</p>
-                <p className='text-xl font-semibold text-black'>Escolhendo Taxa: R${pickingFee.toFixed(2)}</p>
-                <p className='text-xl font-semibold text-black'>Entrega Taxa: R${deliveryFee.toFixed(2)}</p>
-                <p className="mt-4 text-xl font-bold text-black">Total Geral: R${total}</p>
+                <p className='text-xl font-semibold'>Supermercado: {supermarketName}</p>
+                <p className='text-xl font-semibold'>Total do carrinho: R${cartTotal.toFixed(2)}</p>
+                <p className='text-xl font-semibold'>Escolhendo Taxa: R${pickingFee.toFixed(2)}</p>
+                <p className='text-xl font-semibold'>Entrega Taxa: R${deliveryFee.toFixed(2)}</p>
+                <p className="mt-4 text-xl font-bold">Total Geral: R${total}</p>
                 <div className='flex mt-4'>
                     <button
                         onClick={onClose}

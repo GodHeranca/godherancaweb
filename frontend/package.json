@@ -10,11 +10,17 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.19.3",
+    "@reduxjs/toolkit": "^2.2.7",
     "@types/google.maps": "^3.55.12",
+    "axios": "^1.7.4",
     "git-filter-repo": "^0.0.30",
+    "mongoose": "^8.5.3",
     "next": "^14.2.5",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-redux": "^9.1.2",
+    "redux-persist": "^6.0.0",
+    "tw-colors": "^3.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.14.14",

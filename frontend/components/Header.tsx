@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Image from 'next/legacy/image'
 import { useSearch } from '@/context/SearchContext';
 import dynamic from 'next/dynamic';
 import { LoadScript, Libraries } from '@react-google-maps/api';
@@ -120,7 +120,7 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
 
     return (
         isClient ? (
-            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={libraries}>
+            <LoadScript googleMapsApiKey={googleMapsApiKey} libraries={libraries} googleMapsClientId=''>
                 <nav className='bg-white p-4'>
                     <div className='flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto'>
                         <a href='/'>
@@ -149,7 +149,10 @@ const Header: React.FC<HeaderProps> = ({ setUserLocation }) => {
                             </div>
                         </div>
                         <div className='flex items-center flex-shrink-0 mt-4 md:mt-0'>
-                            <a href='#' className='text-black px-4 py-2'>
+                            <a
+                                href='#'
+                                className='text-white px-4 py-2 rounded-lg bg-gradient-to-r from-gray-300 to-gray-700 hover:from-gray-500 hover:to-gray-900 transition-all duration-300 ease-in-out font-semibold shadow-md'
+                            >
                                 Sobre Nos
                             </a>
                         </div>

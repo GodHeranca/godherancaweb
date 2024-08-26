@@ -19,6 +19,7 @@ const HomePage: React.FC = () => {
                     width={500}
                     height={300}
                     className="rounded-lg shadow-lg"
+                    priority
                 />
             </div>
 

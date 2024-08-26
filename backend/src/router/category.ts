@@ -7,6 +7,7 @@ import {
   deleteCategory,
   updateCategory,
   createCategory,
+  getCategoryBySupermarket,
 } from '../controller/categoryController';
 
 export default (router: express.Router) => {
@@ -26,6 +27,10 @@ export default (router: express.Router) => {
     updateCategory,
   );
   router.delete('/category/:id', isAuthenticated,isCategoryOwner, deleteCategory);
-  router.get('/category/:supermarketId/category', getCategory);
+  router.get('/category/:id', getCategory);
   router.get('/category', getAllCategory);
+  router.get(
+    '/supermarket/:supermarketId/categories',
+    getCategoryBySupermarket,
+  );
 };

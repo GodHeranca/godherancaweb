@@ -140,10 +140,22 @@ export const getSupermarket = async (
 ) => {
   try {
     const { id } = req.params;
-    const supermarket = await Supermarket.findById(id);
+
+    // Find the supermarket by ID and populate the associated categories and items
+    const supermarket = await Supermarket.findById(id)
+      .populate({
+        path: 'categories',
+        populate: {
+          path: 'items',
+          model: 'Item',
+        },
+      })
+      .exec();
+
     if (!supermarket) {
       return res.status(404).json({ message: 'Supermarket not found' });
     }
+
     return res.status(200).json(supermarket);
   } catch (error) {
     return res
@@ -151,6 +163,7 @@ export const getSupermarket = async (
       .json({ message: 'Error fetching supermarket', error });
   }
 };
+
 
 // Get all supermarkets
 export const getAllSupermarkets = async (

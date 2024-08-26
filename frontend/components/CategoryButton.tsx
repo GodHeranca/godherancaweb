@@ -1,27 +1,66 @@
-import React from 'react';
-import Image from 'next/image';
+import React, { useState } from 'react';
+import Image from 'next/legacy/image';
 
-type Category = {
-    id: number;
+interface Subcategory {
+    _id: string;
     name: string;
-    image: string;
-};
+}
+
+interface Category {
+    _id: string;
+    name: string;
+    image?: string;
+    subcategories?: Subcategory[];
+}
 
 interface CategoryButtonProps {
     category: Category;
-    onClick: (categoryId: number | null) => void;
+    onClick: () => void;
+    onSubcategoryClick: (subcategoryId: string) => void;
     isSelected: boolean;
 }
 
-const CategoryButton: React.FC<CategoryButtonProps> = ({ category, onClick, isSelected }) => {
+const CategoryButton: React.FC<CategoryButtonProps> = ({ category, onClick, onSubcategoryClick, isSelected }) => {
+    const [isHovered, setIsHovered] = useState(false);
+
     return (
-        <button
-            onClick={() => onClick(category.id)}
-            className={`flex flex-col items-center px-4 py-2 ${isSelected ? 'bg-gray-300' : 'bg-white'} text-black rounded mb-4`}
+        <div
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            className="relative flex flex-col items-center"
         >
-            <Image src={category.image} alt={category.name} width={50} height={50} className='rounded py-2' />
-            {category.name}
-        </button>
+            <button
+                onClick={onClick}
+                className={`flex flex-col items-center px-4 py-2 ${isSelected ? 'bg-gray-200' : 'bg-white'} text-black rounded transition-all duration-300`}
+            >
+                <div className='relative w-16 h-16 mb-2'>
+                    <Image
+                        src={category.image || '/default-category.jpg'}
+                        alt={category.name}
+                        layout="fill"
+                        objectFit='cover'
+                        className='rounded-full'
+                    />
+                </div>
+                {category.name}
+            </button>
+
+            {isHovered && category.subcategories && category.subcategories.length > 0 && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white shadow-2xl rounded-lg overflow-y-auto z-50 max-h-screen">
+                    <div className="p-4">
+                        {category.subcategories.map(subcategory => (
+                            <button
+                                key={subcategory._id}
+                                onClick={() => onSubcategoryClick(subcategory._id)}
+                                className="block px-6 py-3 text-left w-full hover:bg-gray-200 rounded transition-all duration-300"
+                            >
+                                {subcategory.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 

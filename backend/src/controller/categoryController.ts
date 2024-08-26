@@ -1,12 +1,13 @@
 import express from 'express';
 import Category from '../model/Category';
+import mongoose, { Types } from 'mongoose';
 
 export const createCategory = async (
   req: express.Request,
   res: express.Response,
 ) => {
   try {
-    const { name, supermarketId } = req.body; // Extract supermarketId from request body
+    const { name, supermarketId, parentCategory } = req.body;
     let imageUrl: string = '';
 
     // Ensure userId is available from authenticated user
@@ -27,7 +28,6 @@ export const createCategory = async (
 
       const uploadedImageUrl = await req.storage.uploadFile(req.file);
 
-      // Handle case where uploadFile might return undefined
       if (uploadedImageUrl) {
         imageUrl = uploadedImageUrl;
       } else {
@@ -35,21 +35,47 @@ export const createCategory = async (
       }
     }
 
+    // Convert parentCategoryId to ObjectId if it's provided
+    const parentCategoryObjectId = parentCategory
+      ? mongoose.Types.ObjectId.isValid(parentCategory)
+        ? new mongoose.Types.ObjectId(parentCategory)
+        : undefined
+      : undefined;
+
+    // Create a new category with optional parent category
     const newCategory = new Category({
       name,
       image: imageUrl,
-      userId, // Set userId here
-      supermarketId, // Set supermarketId here
+      userId,
+      supermarketId,
+      parentCategory: parentCategoryObjectId,
     });
 
     const savedCategory = await newCategory.save();
-    return res.status(201).json(savedCategory);
+
+    // Update the parent category if needed
+    if (parentCategoryObjectId) {
+      await Category.findByIdAndUpdate(parentCategoryObjectId, {
+        $addToSet: { subcategories: savedCategory._id },
+      });
+    }
+
+    // Populate the parentCategory and subcategories fields
+    const populatedCategory = await Category.findById(savedCategory._id)
+      .populate('parentCategory')
+      .populate('subcategories')
+      .exec();
+
+    return res.status(201).json(populatedCategory);
   } catch (error) {
-    console.error('Error creating category:', error);
+    console.error('Error creating category:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      errorDetails: error,
+    });
     return res.status(500).json({ message: 'Error creating category', error });
   }
 };
-
 
 export const updateCategory = async (
   req: express.Request,
@@ -57,7 +83,7 @@ export const updateCategory = async (
 ) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, parentCategory } = req.body;
 
     // Ensure user is authenticated
     const userId = req.user?._id;
@@ -66,7 +92,7 @@ export const updateCategory = async (
     }
 
     // Fetch the category
-    const category = await Category.findById(id);
+    let category = await Category.findById(id);
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
@@ -97,17 +123,64 @@ export const updateCategory = async (
       }
     }
 
+    // Convert parentCategoryId to ObjectId if it's provided
+    const newParentCategoryObjectId = parentCategory
+      ? mongoose.Types.ObjectId.isValid(parentCategory)
+        ? new mongoose.Types.ObjectId(parentCategory)
+        : undefined
+      : undefined;
+
+    // Update parent category if necessary
+    if (
+      newParentCategoryObjectId &&
+      newParentCategoryObjectId.toString() !==
+        category.parentCategory?.toString()
+    ) {
+      // Remove from old parent's subcategories array
+      if (category.parentCategory) {
+        await Category.findByIdAndUpdate(category.parentCategory, {
+          $pull: { subcategories: category._id },
+        });
+      }
+
+      // Add to new parent's subcategories array
+      await Category.findByIdAndUpdate(newParentCategoryObjectId, {
+        $addToSet: { subcategories: category._id },
+      });
+
+      category.parentCategory = newParentCategoryObjectId;
+    } else if (!newParentCategoryObjectId) {
+      // If newParentCategoryObjectId is undefined, ensure to remove category from its current parent
+      if (category.parentCategory) {
+        await Category.findByIdAndUpdate(category.parentCategory, {
+          $pull: { subcategories: category._id },
+        });
+      }
+
+      category.parentCategory = undefined;
+    }
+
     // Update other fields
     category.name = name || category.name;
 
     const updatedCategory = await category.save();
-    return res.status(200).json(updatedCategory);
+
+    // Populate the parentCategory and subcategories fields
+    const populatedCategory = await Category.findById(updatedCategory._id)
+      .populate('parentCategory')
+      .populate('subcategories')
+      .exec();
+
+    return res.status(200).json(populatedCategory);
   } catch (error) {
-    console.error('Error updating category:', error);
+    console.error('Error updating category:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      errorDetails: error,
+    });
     return res.status(500).json({ message: 'Error updating category', error });
   }
 };
-
 
 export const deleteCategory = async (
   req: express.Request,
@@ -135,13 +208,23 @@ export const deleteCategory = async (
         .json({ message: 'User does not own the category' });
     }
 
-    // Delete the category
-    const deletedCategory = await Category.findByIdAndDelete(id);
-    if (!deletedCategory) {
-      return res.status(404).json({ message: 'Category not found' });
+    // Remove from parent's subcategories array if it has a parent
+    if (category.parentCategory) {
+      await Category.findByIdAndUpdate(category.parentCategory, {
+        $pull: { subcategories: category._id },
+      });
     }
 
-    return res.status(200).json({ message: 'Category deleted successfully' });
+    // Optionally handle subcategories (e.g., delete them or reassign them)
+    // Here, we'll just delete the subcategories for simplicity
+    await Category.deleteMany({ parentCategory: category._id });
+
+    // Delete the category
+    await Category.findByIdAndDelete(id);
+
+    return res
+      .status(200)
+      .json({ message: 'Category and its subcategories deleted successfully' });
   } catch (error) {
     console.error('Error deleting category:', error);
     return res.status(500).json({ message: 'Error deleting category', error });
@@ -168,23 +251,54 @@ export const getCategory = async (
   res: express.Response,
 ) => {
   try {
-    const { supermarketId } = req.params;
+    const { id } = req.params;
 
-    // Fetch all categories for the given supermarketId
-    const categories = await Category.find({ supermarketId });
+    // Fetch the category with its parent category and subcategories
+    const category = await Category.findById(id)
+      .populate('parentCategory') // Populate parent category
+      .populate('subcategories')
+      .exec(); // Populate subcategories
 
-    if (!categories || categories.length === 0) {
-      return res
-        .status(404)
-        .json({ message: 'No categories found for this supermarket' });
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
     }
 
-    return res.status(200).json(categories);
+    return res.status(200).json(category);
   } catch (error) {
-    console.error('Error retrieving categories:', error);
+    console.error('Error retrieving category:', error);
+    return res
+      .status(500)
+      .json({ message: 'Error retrieving category', error });
+  }
+};
+
+export const getCategoryBySupermarket = async (
+  req: express.Request,
+  res: express.Response,
+) => {
+  try {
+    const { supermarketId } = req.params;
+
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(supermarketId)) {
+      return res.status(400).json({ message: 'Invalid supermarketId format' });
+    }
+
+    // Find categories by supermarketId and populate the parent category and subcategories
+    const categories = await Category.find({ supermarketId })
+      .populate('parentCategory')
+      .populate('subcategories')
+      .exec();
+
+    return res.status(200).json(categories); // Always return a 200 with the array, even if empty
+  } catch (error) {
+    console.error('Error in getCategoryBySupermarket:', error);
     return res
       .status(500)
       .json({ message: 'Error retrieving categories', error });
   }
 };
+
+
+
 

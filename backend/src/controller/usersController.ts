@@ -5,6 +5,8 @@ import Client from '../model/Client';
 import Driver from '../model/Driver';
 import Picker from '../model/Picker';
 import Supermarket from '../model/Supermarket';
+import Category from '../model/Category';
+import Item from '../model/Item';
 
 export const getAllUsers = async (
   req: express.Request,
@@ -28,11 +30,45 @@ export const deleteUser = async (
 ): Promise<void> => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
+
     if (!user) {
       res.status(404).json({ message: 'User not found' });
       return;
     }
-    res.status(200).json({ message: 'User deleted successfully' });
+
+    // Delete associated profiles and related data
+    switch (user.userType) {
+      case 'Supermarket':
+        const supermarket = await Supermarket.findByIdAndDelete(
+          user.supermarketId,
+        );
+        if (supermarket) {
+          // Delete associated items and categories for this supermarket
+          await Item.deleteMany({ supermarket: supermarket._id });
+          await Category.deleteMany({ supermarket: supermarket._id });
+        }
+        break;
+
+      case 'Driver':
+        await Driver.findByIdAndDelete(user.driverId);
+        break;
+
+      case 'Client':
+        await Client.findByIdAndDelete(user.clientId);
+        break;
+
+      case 'Picker':
+        await Picker.findByIdAndDelete(user.pickerId);
+        break;
+
+      case 'Admin':
+        await Admin.findByIdAndDelete(user.adminId);
+        break;
+    }
+
+    res
+      .status(200)
+      .json({ message: 'User and all associated data deleted successfully' });
   } catch (error: unknown) {
     if (error instanceof Error) {
       res.status(500).json({ message: error.message });
@@ -41,6 +77,7 @@ export const deleteUser = async (
     }
   }
 };
+
 
 export const updateUser = async (
   req: express.Request,

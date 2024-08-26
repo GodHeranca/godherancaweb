@@ -35,6 +35,7 @@ export const addItem = async (req: express.Request, res: express.Response) => {
       discount,
       promotionEnd,
       supermarket,
+      quantityOffers, // New field for quantity-based offers
     } = req.body;
 
     // Check for required fields
@@ -89,6 +90,22 @@ export const addItem = async (req: express.Request, res: express.Response) => {
       return res.status(400).json({ message: 'Image is required' });
     }
 
+    // Validate and parse quantityOffers if provided
+    let parsedQuantityOffers;
+    if (quantityOffers) {
+      try {
+        parsedQuantityOffers = JSON.parse(quantityOffers);
+        if (!Array.isArray(parsedQuantityOffers)) {
+          throw new Error('quantityOffers must be an array');
+        }
+        // Further validation can be added here to ensure each offer is valid
+      } catch (err) {
+        return res.status(400).json({
+          message: 'Invalid format for quantityOffers',
+        });
+      }
+    }
+
     // Create and save new item
     const newItem = new Item({
       category,
@@ -102,6 +119,7 @@ export const addItem = async (req: express.Request, res: express.Response) => {
       discount,
       promotionEnd: promotionEnd ? new Date(promotionEnd) : undefined,
       supermarket,
+      quantityOffers: parsedQuantityOffers, // Save quantity-based offers
     });
 
     const savedItem = await newItem.save();
@@ -111,6 +129,7 @@ export const addItem = async (req: express.Request, res: express.Response) => {
     return res.status(500).json({ message: 'Error adding item', error });
   }
 };
+
 
 // Get item by ID
 export const getItemsById = async (
@@ -183,7 +202,6 @@ export const getItemsByCategory = async (
 };
 
 // Update item by ID
-// Update item by ID
 export const updateItemsById = async (
   req: express.Request,
   res: express.Response,
@@ -201,6 +219,7 @@ export const updateItemsById = async (
       promotionEnd,
       category: categoryId, // Expect category ID
       supermarket,
+      quantityOffers, // New field for quantity-based offers
     } = req.body;
 
     // Check if the category exists by ID
@@ -231,6 +250,24 @@ export const updateItemsById = async (
     item.supermarket = supermarket || item.supermarket;
     item.category = categoryId || item.category;
 
+    // Validate and update quantityOffers if provided
+    if (quantityOffers) {
+      try {
+        const parsedQuantityOffers = JSON.parse(quantityOffers);
+        if (!Array.isArray(parsedQuantityOffers)) {
+          return res
+            .status(400)
+            .json({ message: 'quantityOffers must be an array' });
+        }
+        // Further validation can be added here to ensure each offer is valid
+        item.quantityOffers = parsedQuantityOffers;
+      } catch (err) {
+        return res.status(400).json({
+          message: 'Invalid format for quantityOffers',
+        });
+      }
+    }
+
     // Handle image URL update
     if (req.file) {
       if (!req.storage) {
@@ -252,6 +289,7 @@ export const updateItemsById = async (
     return res.status(500).json({ message: 'Error updating item', error });
   }
 };
+
 
 
 // Delete item by ID

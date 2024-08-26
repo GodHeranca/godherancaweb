@@ -1,5 +1,4 @@
 import multer from 'multer';
-import path from 'path';
 import logger from '../utils/logger';
 import response from '../utils/response';
 import localStorage from '../helpers/local';
@@ -39,7 +38,7 @@ const fileFilter = (
   cb: (error: any, acceptFile: boolean) => void,
 ) => {
   try {
-    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
     const fileExtension = file.originalname.split('.').pop()?.toLowerCase();
     if (allowedExtensions.includes(fileExtension as string)) {
       return cb(null, true);
