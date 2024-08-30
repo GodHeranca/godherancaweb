@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 
 
 const ClientSideLayout = ({ children }: { children: React.ReactNode }) => {
-   
+
     const [mounted, setMounted] = useState(false);
     const [userLocation, setUserLocation] = useState<{ lat: number, lon: number } | null>(null);
 

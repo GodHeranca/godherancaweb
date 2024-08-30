@@ -6,7 +6,6 @@ import ItemModal from '../../components/ItemModal';
 import CheckoutModal from './CheckoutModal';
 import CartItem from '../../components/CartItem';
 import { Category, Item } from '@/context/SupermarketContext';
-
 interface SupermarketPageProps {
     name: string;
     image: string;
@@ -143,14 +142,14 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({
                     </button>
                     <div
                         ref={categoriesContainerRef}
-                        className='flex overflow-x-auto whitespace-nowrap mb-4 px-2'
+                        className='flex overflow-x-auto scroll-snap-x whitespace-nowrap mb-4 px-2 gap-2 scrollbar-hide snap-mandatory'
                     >
                         <button
                             onClick={handleAllButtonClick}
                             className={`flex flex-col items-center p-2 mb-4 mx-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition duration-300 ease-in-out ${selectedCategory === 'all' ? 'bg-gray-400' : ''}`}
                         >
-                            <div className='relative w-10 h-10 mb-2'>
-                                <Image src="/all.svg" alt="All" width={30} height={30} />
+                            <div className='relative top-2 w-14 h-14 mb-4'>
+                                <Image src="/all.svg" alt="All" width={40} height={40} />
                             </div>
                             All Items
                         </button>
@@ -167,6 +166,7 @@ const SupermarketPage: React.FC<SupermarketPageProps> = ({
                             ))}
                     </div>
                 </div>
+
 
                 <div className='mb-4'>
                     <input

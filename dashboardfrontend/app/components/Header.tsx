@@ -59,7 +59,7 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center w-full mb-4 bg-white">
             <div className="flex justify-between items-center gap-5">
                 <button
-                    className="px-3 py-3 bg-gray-100 rounded-full hover:bg-blue-100"
+                    className="px-3 py-3 bg-gray-100 rounded-full hover:bg-gray-300"
                     onClick={toggleSidebar}
                 >
                     <Menu className="w-4 h-4" />

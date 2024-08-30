@@ -1,6 +1,7 @@
-import React, { Dispatch, SetStateAction, useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Autocomplete } from '@react-google-maps/api';
 import { Item } from '../../context/SupermarketContext';
+import useGoogleMapsLoader from '../../hook/GoogleMap'; // Adjust the path as needed
 
 type CartItem = Item & { quantity: number };
 
@@ -20,6 +21,8 @@ interface CheckoutModalProps {
     supermarketName: string;
 }
 
+const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ''; // Replace with your actual Google Maps API key
+
 const CheckoutModal: React.FC<CheckoutModalProps> = ({
     isOpen,
     onClose,
@@ -35,6 +38,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     supermarketAddress,
     supermarketName
 }) => {
+    const isLoaded = useGoogleMapsLoader(apiKey);
     const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
     const [distance, setDistance] = useState<number | null>(null);
 
@@ -43,11 +47,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     }, []);
 
     const handleAddressChange = (address: string) => {
-        // Create a synthetic event with the address
         const event = {
-            target: {
-                value: address
-            }
+            target: { value: address }
         } as React.ChangeEvent<HTMLInputElement>;
         onAddressChange(event);
     };
@@ -136,7 +137,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
         window.open(url, '_blank');
     };
 
-
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -154,6 +154,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({
     };
 
     if (!isOpen) return null;
+
+    if (!isLoaded) {
+        return <div>Loading Google Maps...</div>;
+    }
 
     return (
         <div className='fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50'>
