@@ -18,8 +18,8 @@ const HomePage: React.FC = () => {
                     alt="Supermarket Dashboard"
                     width={500}
                     height={300}
-                    className="rounded-lg shadow-lg"
-                    priority
+                    className="rounded-lg shadow-lg h-auto w-auto"
+                    priority={true}
                 />
             </div>
 
