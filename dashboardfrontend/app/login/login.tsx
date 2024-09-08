@@ -1,9 +1,9 @@
 "use client"
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
-import { useLogin } from '../context/LoginContext'; // Ensure the path is correct
+import { useLogin } from '../context/LoginContext';
 import { useDispatch } from 'react-redux';
-import { setUser, setToken, clearUser, clearToken } from '../state/authSlice'; // Update path as needed
+import { setUser, setToken, clearUser, clearToken } from '../state/authSlice';
 import Link from 'next/link';
 
 const Login = () => {
@@ -29,7 +29,6 @@ const Login = () => {
             }, 15 * 60 * 1000); // 15 minutes in milliseconds
         };
 
-        // Reset the timeout on any user activity
         window.addEventListener('mousemove', resetTimeout);
         window.addEventListener('keydown', resetTimeout);
         resetTimeout();
@@ -46,6 +45,7 @@ const Login = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
 
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
@@ -53,7 +53,7 @@ const Login = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include', // Include cookies
+                credentials: 'include',
                 body: JSON.stringify({ email, password }),
             });
 
@@ -62,21 +62,16 @@ const Login = () => {
             }
 
             const data = await response.json();
-            console.log(data);
 
-            // Pass the email and password to the login function
             await login(email, password);
-
-            // Update Redux state with user and token
             dispatch(setUser(data.user));
             dispatch(setToken(data.token));
 
-            // Reset the timeout on successful login
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);
             }
 
-            // Redirect to the profile page
+            // Redirect to the profile page after login
             router.push('/inventory');
         } catch (err) {
             console.error(err);
@@ -100,6 +95,7 @@ const Login = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
+                            disabled={loading}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         />
                     </div>
@@ -111,13 +107,13 @@ const Login = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
+                            disabled={loading}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         />
                     </div>
                     <button
                         type="submit"
-                        className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 dark:bg-black-500 hover:bg-black-500 dark:hover:bg-black-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black-400 ${loading ? 'cursor-not-allowed opacity-50' : ''
-                            }`}
+                        className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 dark:bg-black-500 hover:bg-black-500 dark:hover:bg-black-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black-400 ${loading ? 'cursor-not-allowed opacity-50' : ''}`}
                         disabled={loading}
                     >
                         {loading ? 'Logging in...' : 'Login'}

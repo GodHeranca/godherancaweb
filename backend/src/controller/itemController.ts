@@ -3,7 +3,6 @@ import Item from '../model/Item';
 import mongoose from 'mongoose';
 import User from '../model/User';
 import Category from '../model/Category';
-import { Types } from 'mongoose';
 
 export const checkSupermarketOwnership = async (
   userId: string,
