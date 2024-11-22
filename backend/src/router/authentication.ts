@@ -1,5 +1,6 @@
 import express from 'express';
 import { login, register } from '../controller/authenticationController';
+import passport from 'passport';
 
 export default (router: express.Router) => {
   // Registration route
@@ -10,4 +11,5 @@ export default (router: express.Router) => {
 
   // Login route
   router.post('/auth/login', login); // Controller function to handle login
+
 };

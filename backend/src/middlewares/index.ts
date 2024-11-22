@@ -6,7 +6,8 @@ import { CustomRequest } from '../types/express';
 import Category from '../model/Category';
 import Item from '../model/Item';
 import { Types } from 'mongoose';
-import { IUser } from 'types/userTypes';
+import { IUser } from '../types/userTypes';
+import { RequestHandler } from 'express';
 
 
 export const isAuthenticated = async (
@@ -42,13 +43,13 @@ export const isAuthenticated = async (
 
 
 export const isOwner = async (
-  req: CustomRequest,
+  req: express.Request,
   res: express.Response,
   next: express.NextFunction,
 ) => {
   try {
     const { id } = req.params; // Resource ID from URL parameters
-    const currentUserId = req.user?._id?.toString(); // Access user ID
+    const currentUserId = (req as CustomRequest).user?._id?.toString(); // Access user ID
 
     console.log('Current User ID:', currentUserId);
     console.log('Resource ID:', id);
@@ -97,7 +98,9 @@ export const isSupermarketOwner = async (
       itemSupermarketId = (item.supermarket as any)._id.toString();
     }
 
-    const userSupermarketId = req.user?.supermarketId?.toString(); // User's supermarket ID
+    const userSupermarketId = (
+      req as CustomRequest
+    ).user?.supermarketId?.toString(); // User's supermarket ID
 
     if (!userSupermarketId) {
       console.error('User supermarket ID is missing');
@@ -136,7 +139,7 @@ export const isCategoryOwner = async (
 ) => {
   try {
     const { id } = req.params;
-    const userId = req.user?._id;
+    const userId = (req as CustomRequest).user?._id;
 
     if (!userId) {
       return res.status(403).json({ message: 'User not authenticated' });

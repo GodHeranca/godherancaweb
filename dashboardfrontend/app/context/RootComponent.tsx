@@ -10,6 +10,7 @@ import { I18nextProvider } from 'react-i18next';
 import { ItemProvider } from './ItemContext';
 import { SupermarketProvider } from '../context/SupermarketContext';
 import { CategoryProvider } from './CategoryContext';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const RootComponent = ({ children }: { children: React.ReactNode }) => {
     const dispatch = useAppDispatch();
@@ -29,6 +30,7 @@ const RootComponent = ({ children }: { children: React.ReactNode }) => {
 
 const RootComponentWithProvider = ({ children }: { children: React.ReactNode }) => {
     return (
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string}>
         <StoreProvider>
             <I18nextProvider i18n={i18n}>
                 <LoginProvider>
@@ -42,8 +44,9 @@ const RootComponentWithProvider = ({ children }: { children: React.ReactNode }) 
                         </CategoryProvider>
                     </SupermarketProvider>
                 </LoginProvider>
-            </I18nextProvider>
+             </I18nextProvider>
         </StoreProvider>
+        </GoogleOAuthProvider>
     );
 };
 

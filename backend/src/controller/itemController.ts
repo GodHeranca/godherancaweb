@@ -3,6 +3,7 @@ import Item from '../model/Item';
 import mongoose from 'mongoose';
 import User from '../model/User';
 import Category from '../model/Category';
+import { CustomRequest } from 'types/express';
 
 export const checkSupermarketOwnership = async (
   userId: string,
@@ -57,7 +58,7 @@ export const addItem = async (req: express.Request, res: express.Response) => {
       return res.status(403).json({ message: 'User is not authenticated' });
     }
 
-    const userId = req.user.id;
+    const userId = (req as CustomRequest).user?.id;
 
     // Verify that the user is the owner of the supermarket
     const isOwner = await checkSupermarketOwnership(userId, supermarket);

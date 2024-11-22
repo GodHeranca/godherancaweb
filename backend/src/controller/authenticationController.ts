@@ -9,8 +9,8 @@ import Client from '../model/Client';
 import Driver from '../model/Driver';
 import Picker from '../model/Picker';
 import mongoose, { Types } from 'mongoose';
-
-
+import { sendMail } from '../helpers/email';
+import bcrypt from 'bcrypt';
 
 export const login = async (
   req: express.Request,
@@ -24,7 +24,7 @@ export const login = async (
       return;
     }
 
-    const user = await getUserByEmail(email)
+    const user = await getUserByEmail(email);
     if (!user) {
       res.status(400).json({ message: 'Invalid email or password' });
       return;
@@ -43,13 +43,13 @@ export const login = async (
     await user.save();
 
     // Set cookie
-   res.cookie('GodHeranca-Auth', user.authentication.sessionToken, {
-     domain: 'localhost', 
-     path: '/', 
-    //  httpOnly: true, 
-    //  secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+    res.cookie('GodHeranca-Auth', user.authentication.sessionToken, {
+      domain: 'localhost',
+      path: '/',
+      //  httpOnly: true,
+      //  secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
       // sameSite: 'lax', // Allow cookies to be sent with cross-site requests
-   });
+    });
 
     res.status(200).json(user).end();
   } catch (error) {
@@ -95,6 +95,12 @@ export const register = async (
     const salt = random();
     const hashedPassword = authentication(salt, password);
 
+    // Generate and hash a verification token
+    const verificationCode = Math.floor(
+      100000 + Math.random() * 900000,
+    ).toString();
+    const hashedVerificationToken = bcrypt.hashSync(verificationCode, 10);
+
     const newUser = new User({
       username,
       email,
@@ -108,72 +114,107 @@ export const register = async (
       userType,
       profile,
       profilePicture,
+      verificationToken: hashedVerificationToken, // Save the hashed token
+      tokenExpiration: new Date(Date.now() + 3600 * 1000), // 1-hour expiration
     });
 
+    // Create additional entity based on userType
     let entityId: mongoose.Schema.Types.ObjectId | undefined;
 
-    switch (userType) {
-      case 'Supermarket':
-        const newSupermarket = new Supermarket({
-          name: profile,
-          image: profilePicture || '',
-          address: address ? address.join(', ') : '',
-          categories: [],
-          items: [],
-        });
-        const savedSupermarket = await newSupermarket.save();
-        entityId = savedSupermarket._id as mongoose.Schema.Types.ObjectId; // Type assertion
-        newUser.supermarketId = entityId as unknown as Types.ObjectId;
-        break;
+    const createUserEntity = async (
+      userType: string,
+      profile: string,
+      profilePicture: string,
+      address: string[],
+    ) => {
+      switch (userType) {
+        case 'Supermarket':
+          const newSupermarket = new Supermarket({
+            name: profile,
+            image: profilePicture || '',
+            address: address.join(', ') || '',
+          });
+          return await newSupermarket.save();
 
-      case 'Driver':
-        const newDriver = new Driver({
-          name: profile,
-          licenseNumber: profile,
-        });
-        const savedDriver = await newDriver.save();
-        entityId = savedDriver._id as mongoose.Schema.Types.ObjectId; // Type assertion
-        newUser.driverId = entityId;
-        break;
+        case 'Driver':
+          const newDriver = new Driver({ name: profile });
+          return await newDriver.save();
 
-      case 'Client':
-        const newClient = new Client({
-          name: profile,
-        });
-        const savedClient = await newClient.save();
-        entityId = savedClient._id as mongoose.Schema.Types.ObjectId; // Type assertion
-        newUser.clientId = entityId;
-        break;
+        case 'Client':
+          const newClient = new Client({ name: profile });
+          return await newClient.save();
 
-      case 'Picker':
-        const newPicker = new Picker({
-          name: profile,
-        });
-        const savedPicker = await newPicker.save();
-        entityId = savedPicker._id as mongoose.Schema.Types.ObjectId; // Type assertion
-        newUser.pickerId = entityId;
-        break;
+        case 'Picker':
+          const newPicker = new Picker({ name: profile });
+          return await newPicker.save();
 
-      case 'Admin':
-        const newAdmin = new Admin({
-          name: profile,
-        });
-        const savedAdmin = await newAdmin.save();
-        entityId = savedAdmin._id as mongoose.Schema.Types.ObjectId; // Type assertion
-        newUser.adminId = entityId;
-        break;
-    }
+        case 'Admin':
+          const newAdmin = new Admin({ name: profile });
+          return await newAdmin.save();
+
+        default:
+          return null;
+      }
+    };
+
+    const savedEntity = await createUserEntity(
+      userType,
+      profile,
+      profilePicture,
+      addressArray,
+    );
+    
+   if (savedEntity) {
+     const savedEntityId = savedEntity._id as mongoose.Types.ObjectId; // Assert type
+     switch (userType.toLowerCase()) {
+       case 'driver':
+         newUser.driverId = savedEntityId;
+         break;
+       case 'client':
+         newUser.clientId = savedEntityId;
+         break;
+       case 'picker':
+         newUser.pickerId = savedEntityId;
+         break;
+       case 'admin':
+         newUser.adminId = savedEntityId;
+         break;
+       case 'supermarket':
+         newUser.supermarketId = savedEntityId;
+         break;
+       default:
+         throw new Error(`Unknown userType: ${userType}`);
+     }
+   }
 
     // Save the user with the correct userType field populated
     await newUser.save();
 
-    res.status(201).json(newUser);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: 'An unexpected error occurred' });
+    // Send verification email
+    try {
+      await sendMail({
+        email: email,
+        subject: 'Email Verification',
+        body: `Your verification code is: ${verificationCode}`,
+        successMessage: 'Verification email sent successfully.',
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      res.status(201).json({
+        message:
+          'Registration successful, but we couldn’t send the verification email. Please contact support.',
+      });
+      return;
     }
+
+    res.status(201).json({
+      message:
+        'Registration successful. Please check your email to verify your account.',
+    });
+  } catch (error: unknown) {
+    console.error('Error during registration:', error);
+    res.status(500).json({ message: 'An unexpected error occurred' });
   }
 };
+
 

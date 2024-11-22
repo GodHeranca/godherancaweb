@@ -1,4 +1,8 @@
-import mongoose, { Document } from 'mongoose';
+// types/userTypes.ts
+import mongoose, { Document, Types,  } from 'mongoose';
+
+export type UserType = 'Admin' | 'Driver' | 'Supermarket' | 'Client' | 'Picker';
+
 export interface IUser extends Document {
   username: string;
   email: string;
@@ -10,12 +14,14 @@ export interface IUser extends Document {
   };
   address?: string[];
   phone?: string;
-  userType: 'Admin' | 'Driver' | 'Supermarket' | 'Client' | 'Picker';
+  userType: UserType;
   profilePicture?: string;
+  verificationToken?: string;
   profile: string;
-  supermarketId?: mongoose.Schema.Types.ObjectId; // For Supermarket
-  driverId?: mongoose.Schema.Types.ObjectId; // For Driver
-  clientId?: mongoose.Schema.Types.ObjectId; // For Client
-  pickerId?: mongoose.Schema.Types.ObjectId; // For Picker
-  adminId?: mongoose.Schema.Types.ObjectId; //
+  supermarketId?: mongoose.Types.ObjectId;
+  driverId?: mongoose.Types.ObjectId;
+  clientId?: mongoose.Types.ObjectId;
+  pickerId?: mongoose.Types.ObjectId;
+  adminId?: mongoose.Types.ObjectId;
+  isVerified: boolean;
 }

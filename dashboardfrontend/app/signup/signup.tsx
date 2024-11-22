@@ -1,10 +1,12 @@
 "use client";
 import { useState } from 'react';
-import axios from 'axios'; // Import axios
+import axios from 'axios';
 import Link from 'next/link';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { GoogleLogin } from '@react-oauth/google';
+import { useRouter } from 'next/navigation';
 
 // Define the form inputs type
 interface SignupFormInputs {
@@ -22,7 +24,13 @@ interface SignupFormInputs {
 const validationSchema = Yup.object().shape({
     username: Yup.string().required("Username is required"),
     email: Yup.string().email("Invalid email").required("Email is required"),
-    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
+    password: Yup.string()
+        .min(6, "Password must be at least 6 characters")
+        .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+        .matches(/\d/, "Password must contain at least one number")
+        .matches(/[@$!%*?&#]/, "Password must contain at least one special character")
+        .required("Password is required"),
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password')], 'Passwords must match')
         .required('Confirm Password is required'),
@@ -35,25 +43,57 @@ const validationSchema = Yup.object().shape({
 });
 
 const Signup = () => {
-    const { register, handleSubmit, formState: { errors } } = useForm<SignupFormInputs>({
+    const { register, handleSubmit, formState: { errors, isValid } } = useForm<SignupFormInputs>({
         resolver: yupResolver(validationSchema),
+        mode: 'onChange',  // Enables real-time form validation
     });
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const router = useRouter();
+
+    // const onSubmit: SubmitHandler<SignupFormInputs> = async (data) => {
+    //     try {
+    //         const addressArray = data.address.split(',').map(addr => addr.trim());
+    //         const registrationData = { ...data, address: addressArray };
+
+    //         const registrationResponse = await axios.post('http://localhost:8080/auth/register', registrationData);
+    //         if (registrationResponse.status === 201) {
+    //             setSuccess('Registration successful! You can now log in.');
+    //             setError('');
+    //         } else {
+    //             setError('Registration failed. Please try again.');
+    //         }
+    //     } catch (err: unknown) {
+    //         if (axios.isAxiosError(err)) {
+    //             if (err.response) {
+    //                 setError(`Registration failed: ${err.response.data.message || 'Please try again.'}`);
+    //             } else if (err.request) {
+    //                 setError('No response from the server. Please try again.');
+    //             } else {
+    //                 setError(`Error: ${err.message}`);
+    //             }
+    //         } else if (err instanceof Error) {
+    //             setError(`Error: ${err.message}`);
+    //         } else {
+    //             setError('An unexpected error occurred. Please try again.');
+    //         }
+    //     }
+    // };
+
 
     const onSubmit: SubmitHandler<SignupFormInputs> = async (data) => {
         try {
-            // Ensure address is an array, even if it's a single string
             const addressArray = data.address.split(',').map(addr => addr.trim());
-
-            // Update data to include address as an array
             const registrationData = { ...data, address: addressArray };
 
             const registrationResponse = await axios.post('http://localhost:8080/auth/register', registrationData);
             if (registrationResponse.status === 201) {
-                setSuccess('Registration successful! You can now log in.');
+                setSuccess('Registration successful! A verification email has been sent to your inbox.');
                 setError('');
+
+                // Redirect to the verification page
+                router.push(`/verification?email=${data.email}`);
             } else {
                 setError('Registration failed. Please try again.');
             }
@@ -74,10 +114,29 @@ const Signup = () => {
         }
     };
 
+    const onSuccess = async (response: any) => {
+        try {
+            const { credential } = response;  // Assuming the token is in 'credential'
+            const googleResponse = await axios.post('http://localhost:8080/oauth/google', { token: credential });
+            if (googleResponse.status === 200) {
+                setSuccess('Google Sign-In successful! You can now log in.');
+                setError('');
+            } else {
+                setError('Google Sign-In failed. Please try again.');
+            }
+        } catch (err) {
+            setError('Google Sign-In failed. Please try again.');
+        }
+    };
 
+
+    const onFailure = () => {
+        console.error(error);
+        setError('Google Sign-In failed. Please try again.');
+    };
 
     return (
-        <div className="flex justify-center items-start min-h-screen bg-gray-50 pt-12 sm:pt-20">
+        <div className="flex justify-center items-start min-h-screen bg-gray-50 pt-12 sm:pt-20 px-4">
             <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
                 <h2 className="text-2xl font-bold text-center mb-6">Sign Up</h2>
                 {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
@@ -169,18 +228,25 @@ const Signup = () => {
                         />
                         {errors.profile && <p className="text-red-500 text-sm">{errors.profile.message}</p>}
                     </div>
-                    <div className="flex justify-center">
-                        <button
-                            type="submit"
-                            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            Sign Up
-                        </button>
-                    </div>
-                    <div className="mt-4 text-center">
-                        <p className="text-sm">Already have an account? <Link href="/login" className="text-blue-500 hover:text-blue-600">Login</Link></p>
-                    </div>
+                    <button
+                        type="submit"
+                        disabled={!isValid}
+                        className={`w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${!isValid ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        Sign Up
+                    </button>
                 </form>
+                {/* <div className="mt-4 flex flex-col items-center">
+                    <GoogleLogin
+                        onSuccess={onSuccess}
+                        onError={onFailure}
+                    />
+
+                </div> */}
+                <p className="mt-4 text-center text-sm text-gray-600">
+                    Already have an account?
+                    <Link href="/login" className="text-blue-600 hover:text-blue-800">Log in</Link>
+                </p>
             </div>
         </div>
     );

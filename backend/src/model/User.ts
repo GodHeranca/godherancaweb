@@ -1,7 +1,9 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 
+// Define UserType and IUser interface
 export type UserType = 'Admin' | 'Driver' | 'Supermarket' | 'Client' | 'Picker';
-interface IUser extends Document {
+
+export interface IUser extends Document {
   username: string;
   email: string;
   uid: string;
@@ -14,15 +16,19 @@ interface IUser extends Document {
   phone?: string;
   userType: UserType;
   profilePicture?: string;
+  verificationToken?: string;
   profile: string;
-  supermarketId?: Types.ObjectId; // For Supermarket
-  driverId?: mongoose.Schema.Types.ObjectId; // For Driver
-  clientId?: mongoose.Schema.Types.ObjectId; // For Client
-  pickerId?: mongoose.Schema.Types.ObjectId; // For Picker
-  adminId?: mongoose.Schema.Types.ObjectId; // For Admin
+  supermarketId?: mongoose.Types.ObjectId;
+  driverId?: mongoose.Types.ObjectId;
+  clientId?: mongoose.Types.ObjectId;
+  pickerId?: mongoose.Types.ObjectId;
+  adminId?: mongoose.Types.ObjectId;
+  isVerified: boolean;
+  tokenExpiration?: Date;
+  [key: string]: any;
 }
 
-const UserSchema: Schema = new mongoose.Schema(
+const UserSchema: Schema<IUser> = new mongoose.Schema(
   {
     username: { type: String, required: true },
     email: {
@@ -31,7 +37,10 @@ const UserSchema: Schema = new mongoose.Schema(
       unique: true,
       match: /\S+@\S+\.\S+/,
     },
+    verificationToken: { type: String },
+    isVerified: { type: Boolean, default: false },
     uid: { type: String, required: true, unique: true },
+    tokenExpiration: { type: Date },
     authentication: {
       password: { type: String, required: true, minlength: 6 },
       sessionToken: { type: String, select: false },

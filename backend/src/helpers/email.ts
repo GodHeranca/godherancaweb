@@ -17,31 +17,31 @@ export const sendMail = async ({
 }: SendMailParams) => {
   // Send an email
   const transporter = nodemailer.createTransport({
-    service: 'Gmail', // Use your email service provider
+    service: 'gmail', // Use your email service provider
     auth: {
-      user: process.env.EMAIL, // Your email address
-      pass: process.env.EMAIL_PASSWORD, // Your email password
+      user: process.env.EMAIL_USER, // Your email address
+      pass: process.env.EMAIL_PASS, // Your email password
     },
   });
 
   const mailOptions = {
-    from: process.env.EMAIL,
+    from: process.env.EMAIL_USER,
     to: email,
     subject: subject,
     text: body,
   };
 
-  return transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
+  return transporter
+    .sendMail(mailOptions)
+    .then((info) => {
+      console.log('Email sent:', info.response);
+      return {
+        status: 200,
+        message: successMessage || 'Email sent successfully',
+      };
+    })
+    .catch((error) => {
       console.error('Error sending email:', error);
-      if (errorMessage) {
-        return { status: 500, message: errorMessage };
-      }
-    }
-    console.log('Email sent:', info.response);
-    if (successMessage) {
-      return { status: 200, message: successMessage };
-    }
-    return { status: 200, message: 'Email sent successfully' };
-  });
+      return { status: 500, message: errorMessage || 'Failed to send email' };
+    });
 };

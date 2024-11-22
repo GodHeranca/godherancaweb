@@ -1,6 +1,7 @@
 import express from 'express';
 import Category from '../model/Category';
 import mongoose, { Types } from 'mongoose';
+import { CustomRequest } from 'types/express';
 
 export const createCategory = async (
   req: express.Request,
@@ -11,7 +12,7 @@ export const createCategory = async (
     let imageUrl: string = '';
 
     // Ensure userId is available from authenticated user
-    const userId = req.user?._id;
+    const userId = (req as CustomRequest).user?._id;
     if (!userId) {
       return res.status(403).json({ message: 'User not authenticated' });
     }
@@ -86,7 +87,7 @@ export const updateCategory = async (
     const { name, parentCategory } = req.body;
 
     // Ensure user is authenticated
-    const userId = req.user?._id;
+    const userId = (req as CustomRequest).user?._id;
     if (!userId) {
       return res.status(403).json({ message: 'User not authenticated' });
     }
@@ -190,7 +191,7 @@ export const deleteCategory = async (
     const { id } = req.params;
 
     // Ensure user is authenticated
-    const userId = req.user?._id;
+    const userId = (req as CustomRequest).user?._id;
     if (!userId) {
       return res.status(403).json({ message: 'User not authenticated' });
     }

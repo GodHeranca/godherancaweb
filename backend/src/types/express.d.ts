@@ -18,4 +18,10 @@ declare global {
 export interface CustomRequest extends express.Request {
   user?: IUser; // Custom user property
   supermarketId?: string;
+  driverId?: string;
+  clientId?: string;
+  pickerId?: string;
+  adminId?: string;
 }
+
+
